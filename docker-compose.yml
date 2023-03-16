@@ -1,0 +1,60 @@
+version: '2.1'
+
+networks:
+  ethereum-net:
+    driver: bridge
+
+volumes:
+  redis_data: {}
+  postgres_data: {}
+  tsdb_data: {}
+
+services:
+  redis:
+    image: redis:6.2.5-alpine
+    container_name: redis
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    ports:
+      - '6379:6379'
+    networks:
+      - ethereum-net
+    labels:
+      org.label-schema.group: 'ethereum-geth'
+
+  postgres:
+    image: postgres:12.10-alpine
+    container_name: postgres
+    command: ['postgres', '-cshared_preload_libraries=pg_stat_statements']
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-root}
+    restart: unless-stopped
+    ports:
+      - '5432:5432'
+    networks:
+      - ethereum-net
+    labels:
+      org.label-schema.group: 'ethereum-geth'
+
+  tsdb:
+    image: timescale/timescaledb:2.10.0-pg15
+    container_name: tsdb
+    command:
+      - 'postgres'
+      - '-cshared_preload_libraries=pg_stat_statements'
+      - '-cshared_preload_libraries=timescaledb'
+      - '-cmax_connections=100'
+    volumes:
+      - tsdb_data:/home/postgres/pgdata
+    environment:
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-root}
+    restart: unless-stopped
+    ports:
+      - '4432:5432'
+    networks:
+      - ethereum-net
+    labels:
+      org.label-schema.group: 'ethereum-geth'

@@ -1,0 +1,28 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+toml = "*"
+supervisor = "*"
+superlance = "*"
+slacker = "*"
+prometheus_client = "*"
+rq = "1.10.1"
+multicall = {git = "https://github.com/jsvisa/multicall.py.git"}
+blockchain-etl = {git = "https://github.com/jsvisa/blockchain-etl.git"}
+clickhouse-driver = "==0.2.5"
+
+[dev-packages]
+pre-commit = "*"
+black = "*"
+ipython = "*"
+jupyterlab = "*"
+pytest = "*"
+
+[requires]
+python_version = "3.9"
+
+[pipenv]
+allow_prereleases = true

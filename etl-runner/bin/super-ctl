@@ -1,0 +1,110 @@
+#!/usr/bin/env bash
+
+set -e
+
+# Jump to the current directory first
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/../" >/dev/null 2>&1 && pwd )"
+cd "${DIR}" || exit
+
+ERROR() {
+    echo -e "\e[101m\e[97m[ERROR]\e[49m\e[39m" "$@"
+}
+
+WARNING() {
+    echo -e "\e[101m\e[97m[WARNING]\e[49m\e[39m" "$@"
+}
+
+INFO() {
+    echo -e "\e[104m\e[97m[INFO]\e[49m\e[39m" "$@"
+}
+supervisorctl=".venv/bin/supervisorctl"
+
+restart_load() {
+    processes=$("$supervisorctl" -c supervisord/server.conf status | grep load | grep -v load-pg)
+    running=$(echo "$processes" | grep RUNNING | awk '{print $1}')
+    stopped=$(echo "$processes" | grep STOPPED | awk '{print $1}')
+    for p in $running; do
+        INFO "stop ${p}"
+        "$supervisorctl" -c supervisord/server.conf stop "$p";
+    done
+
+    for p in $stopped; do
+        INFO "start ${p}"
+        "$supervisorctl" -c supervisord/server.conf start "$p";
+    done
+}
+
+do_restart() {
+    INFO "RESTART $1 ..."
+    sleep 2
+    for p in $("$supervisorctl" -c supervisord/server.conf status | awk '{print $1}' | grep "$1$"); do
+        INFO "\t> restart ${p}"
+        "$supervisorctl" -c supervisord/server.conf restart "$p";
+        sleep 0.2;
+    done
+}
+
+do_stop() {
+    INFO "STOP $1 ..."
+    sleep 2
+    for p in $("$supervisorctl" -c supervisord/server.conf status | awk '{print $1}' | grep "$1$"); do
+        INFO "\t> stop ${p}"
+        "$supervisorctl" -c supervisord/server.conf stop "$p";
+    done
+}
+
+do_start() {
+    INFO "START $1 ..."
+    sleep 2
+    for p in $("$supervisorctl" -c supervisord/server.conf status | awk '{print $1}' | grep "$1$"); do
+        INFO "\t> start ${p}"
+        "$supervisorctl" -c supervisord/server.conf start "$p";
+    done
+}
+
+HELP=0
+
+while [[ $# -gt 0 ]]
+do
+    key="$1"
+
+    case $key in
+        -h|--help)
+            HELP=1
+            shift # past argument
+            ;;
+        --restart)
+            do_restart "$2"
+            shift # past argument
+            shift # past argument
+            ;;
+        --start)
+            do_start "$2"
+            shift # past argument
+            shift # past argument
+            ;;
+        --stop)
+            do_stop "$2"
+            shift # past argument
+            shift # past argument
+            ;;
+        --restart-load)
+            restart_load
+            shift # past argument
+            ;;
+        *)
+            ERROR "unknown option $1"
+            shift # past argument
+            ;;
+    esac
+done
+
+if [ "${HELP}" -eq 1 ]; then
+    echo "Usage: $0 [OPTION]"
+    echo "  --help                                                Display this message"
+    echo "  --stop                                                Stop specified process"
+    echo "  --start                                               Start specified process"
+    echo "  --restart                                             Restart specified process"
+    echo "  --restart-load                                        Restart load process(flip over, running <-> stopped)"
+    exit 0
+fi

@@ -1,0 +1,58 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+click = "==8.0.3"
+pymysql = "*"
+requests = "*"
+eth-hash = "*"
+pandas = "==1.4.0"
+web3 = ">5.0.0"
+pyyaml = "*"
+sqlalchemy = "<2.0"
+jinja2 = "*"
+psycopg2-binary = "*" # sqlalchemy uses psycopg2 by default, so we can't drop it
+eth-abi = "*"
+redis = "*"
+ethereum-dasm = "*"
+base58 = "*"
+pyetherchain = "*"
+ecdsa = "*"
+chainside-btcpy = "*"
+ply = "*"
+timeout-decorator = "*"
+"google.cloud" = "*"
+pyyaml-include = "*"
+cachetools = "*"
+s3fs = "==2022.1.0"
+polars = "==0.13.3"
+millify = '==0.1.1'
+pydantic = '==1.9.0'
+diskcache = '==5.4.0'
+loky = '==3.1.0'
+simplejson = '==3.17.6'
+toml = "*" # used by setup
+jsonlines = "*"
+prometheus_client = "*"
+rpq = "==2.2"
+pypeln = "*"
+kafka-python = "*"
+multicall = {git = "https://github.com/jsvisa/multicall.py.git"}
+
+[dev-packages]
+pre-commit = "*"
+black = "*"
+ipython = "*"
+jupyterlab = "*"
+pytest = "*"
+supervisor = "*"
+superlance = "*"
+slacker = "*"
+
+[requires]
+python_version = "3.9"
+
+[pipenv]
+allow_prereleases = true
