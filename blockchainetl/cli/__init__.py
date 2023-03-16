@@ -29,8 +29,10 @@ from ethereumetl.cli.extract_token_holders import extract_token_holders
 from ethereumetl.cli.export_token_holders import export_token_holders
 from ethereumetl.cli.export_token_transfers import export_token_transfers
 from ethereumetl.cli.export_top_holders import export_top_holders
+
 from ethereumetl.cli.export_nft_tokenids import export_nft_tokenids
-from ethereumetl.cli.export_nft_orderbooks import export_nft_orderbooks
+
+# from ethereumetl.cli.export_nft_orderbooks import export_nft_orderbooks
 from ethereumetl.cli.export_contracts import export_contracts
 from ethereumetl.cli.export_uncle_blocks import export_uncle_blocks
 from ethereumetl.cli.get_block_range_for_date import get_block_range_for_date
@@ -79,7 +81,7 @@ cli.add_command(export_token_holders, "eth.export-token-holder")
 cli.add_command(export_token_transfers, "eth.export-token-transfer")
 cli.add_command(export_top_holders, "eth.export-top-holder")
 cli.add_command(export_nft_tokenids, "eth.export-nft-tokenid")
-cli.add_command(export_nft_orderbooks, "eth.export-nft-orderbook")
+# cli.add_command(export_nft_orderbooks, "eth.export-nft-orderbook")
 cli.add_command(export_uncle_blocks, "eth.export-uncle-block")
 cli.add_command(get_block_range_for_date, "eth.block-range-for-date")
 cli.add_command(export_txpool, "eth.export-txpool")
