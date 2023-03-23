@@ -150,9 +150,13 @@ from ethereumetl.streaming.utils import build_erc20_token_reader
 @click.option(
     "--target-db-url",
     type=str,
-    help="The PostgreSQL conneciton url, "
-    "if specified, then directly write the results into this target, "
-    "currently only support pending-mode dump",
+    help="The PostgreSQL conneciton url, used to write results into",
+)
+@click.option(
+    "--target-db-workers",
+    type=int,
+    default=2,
+    help="The PostgreSQL worker count",
 )
 @click.option(
     "--print-sql",
@@ -186,6 +190,7 @@ def dump2(
     pending_mode,
     target_db_schema,
     target_db_url,
+    target_db_workers,
     print_sql,
     cache_path,
 ):
@@ -211,7 +216,12 @@ def dump2(
     if pending_mode is True:
         schema += "_pending"
     item_exporter = create_tsdb_exporter(
-        chain, schema, target_db_url, print_sql=print_sql
+        chain,
+        schema,
+        target_db_url,
+        workers=target_db_workers,
+        pool_size=target_db_workers + 5,
+        print_sql=print_sql,
     )
 
     if chain in Chain.ALL_ETHEREUM_FORKS:
