@@ -156,6 +156,7 @@ from ethereumetl.streaming.utils import build_erc20_token_reader
     "--target-db-workers",
     type=int,
     default=2,
+    show_default=True,
     help="The PostgreSQL worker count",
 )
 @click.option(
