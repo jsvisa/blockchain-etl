@@ -85,16 +85,19 @@ def generate_get_log_by_number_json_rpc(
 
 def generate_trace_block_by_number_json_rpc(
     block_numbers: List[int],
+    tracer: str = env.GETH_TRACE_MODULE,
+    tracer_config: Dict[str, bool] = None,
 ) -> Generator[Dict[str, Union[str, int]], None, None]:
+    config = {"tracer": tracer, "timeout": env.GETH_DEBUG_API_TIMEOUT}
+    if tracer_config is not None:
+        config["tracerConfig"] = tracer_config
+
     for block_number in block_numbers:
         yield generate_json_rpc(
             method="debug_traceBlockByNumber",
             params=[
                 hex(block_number),
-                {
-                    "tracer": env.GETH_TRACE_MODULE,
-                    "timeout": env.GETH_DEBUG_API_TIMEOUT,
-                },
+                config,
             ],
             # save block_number in request ID, so later we can identify block number in response
             request_id=block_number,
@@ -103,16 +106,19 @@ def generate_trace_block_by_number_json_rpc(
 
 def generate_trace_transaction_json_rpc(
     txhashes: List[str],
+    tracer: str = env.GETH_TRACE_MODULE,
+    tracer_config: Dict[str, bool] = None,
 ) -> Generator[Dict[str, Union[str, int]], None, None]:
+    config = {"tracer": tracer, "timeout": env.GETH_DEBUG_API_TIMEOUT}
+    if tracer_config is not None:
+        config["tracerConfig"] = tracer_config
+
     for txhash in txhashes:
         yield generate_json_rpc(
             method="debug_traceTransaction",
             params=[
                 txhash,
-                {
-                    "tracer": env.GETH_TRACE_MODULE,
-                    "timeout": env.GETH_DEBUG_API_TIMEOUT,
-                },
+                config,
             ],
             # save txhash in request ID, so later we can identify txhash in response
             request_id=txhash,
