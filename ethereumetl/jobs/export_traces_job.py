@@ -29,7 +29,11 @@ from web3.types import ParityFilterParams
 from typing import List, Dict, Optional, Generator, Tuple
 from blockchainetl.executors.batch_work_executor import BatchWorkExecutor
 from blockchainetl.jobs.base_job import BaseJob
-from blockchainetl.utils import validate_range, rpc_response_to_result
+from blockchainetl.utils import (
+    validate_range,
+    rpc_response_to_result,
+    rpc_response_batch_to_results,
+)
 
 from ethereumetl.mainnet_daofork_state_changes import DAOFORK_BLOCK_NUMBER
 from ethereumetl.mappers.trace_mapper import EthTraceMapper
@@ -115,7 +119,9 @@ class ExportTracesJob(BaseJob):
             daofork_traces = self.special_trace_service.get_daofork_traces()
             all_traces.extend(daofork_traces)
 
-        if env.IS_ARBITRUM_TRACE is True:
+        if env.IS_FLATCALL_TRACE is True:
+            traces = self._export_batch_flatcall(block_number_batch)
+        elif env.IS_ARBITRUM_TRACE is True:
             traces = self._export_batch_arbitrum(block_number_batch)
         elif self.is_geth_provider is True:
             traces = self._export_batch_geth(block_number_batch)
@@ -167,7 +173,7 @@ class ExportTracesJob(BaseJob):
             else:
                 return self._export_batch_geth_by_block(block_number_batch)
 
-        for (blknum, tx_traces) in tracer():
+        for blknum, tx_traces in tracer():
             geth_trace = self.geth_trace_mapper.json_dict_to_geth_trace(
                 {
                     "block_number": blknum,
@@ -219,6 +225,34 @@ class ExportTracesJob(BaseJob):
             ]
 
         return json_traces
+
+    def _export_batch_flatcall(self, block_number_batch: List[int]) -> List[EthTrace]:
+        trace_block_rpc = list(
+            generate_trace_block_by_number_json_rpc(
+                block_number_batch,
+                tracer="flatCallTracer",
+                tracer_config={
+                    "convertParityErrors": True,
+                    "includePrecompiles": self.retain_precompiled_calls,
+                },
+            )
+        )
+        if self.batch_size == 1:
+            trace_block_rpc = trace_block_rpc[0]
+        response = self.batch_web3_provider.make_batch_request(
+            json.dumps(trace_block_rpc)
+        )
+        if self.batch_size == 1:
+            response = response[0]
+
+        traces = []
+        for block_traces in rpc_response_batch_to_results(response):
+            for tx_traces in block_traces:
+                for tx_trace in tx_traces["result"]:
+                    trace = self.trace_mapper.json_dict_to_trace(tx_trace)
+                    traces.append(trace)
+
+        return traces
 
     def _export_batch_arbitrum(self, block_number_batch: List[int]) -> List[EthTrace]:
         trace_block_rpc = list(

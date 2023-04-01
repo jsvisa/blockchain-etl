@@ -94,7 +94,6 @@ class EthStreamerAdapter(EthBaseAdapter):
         # 1. Export receipts and logs
         receipts, logs = [], []
         if len(transactions) > 0:
-
             # 1.0 ONLY log is exported, no transaction/receipt is required
             if (
                 self._should_export(EntityType.LOG)
@@ -285,7 +284,7 @@ class EthStreamerAdapter(EthBaseAdapter):
             for txhash, items in transaction_blocks.items():
                 if txhash in receipt_txhashes:
                     continue
-                for (tx_blknum, txpos) in items:
+                for tx_blknum, txpos in items:
                     logging.warning(
                         f"fill empty receipt of txhash: {txhash} in blknum: {tx_blknum}"
                     )
