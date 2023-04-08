@@ -35,16 +35,13 @@ services:
       - '--ws.origins=*'
       - '--ws.api=web3,eth,net,personal,miner,txpool,debug,admin'
       - '--metrics'
+      - '--metrics.expensive'
       - '--metrics.addr=0.0.0.0'
       - '--metrics.port=6080'
       - '--pprof'
       - '--pprof.addr=0.0.0.0'
       - '--pprof.port=6081'
       - '--txlookuplimit=0'
-      - '--txpool.accountslots=32'
-      - '--txpool.globalslots=1024'
-      - '--txpool.accountqueue=256'
-      - '--txpool.globalqueue=2048'
     restart: unless-stopped
     ports:
       - '8545:8545'
