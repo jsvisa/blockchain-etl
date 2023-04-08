@@ -48,7 +48,7 @@ services:
       - '-cshared_preload_libraries=timescaledb'
       - '-cmax_connections=100'
     volumes:
-      - tsdb_data:/home/postgres/pgdata
+      - tsdb_data:/var/lib/postgresql/data
     environment:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-root}
     restart: unless-stopped
