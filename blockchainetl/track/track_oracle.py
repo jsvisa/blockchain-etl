@@ -37,8 +37,8 @@ class TrackOracle:
             profile = self.profiler.get_profile(address)
             vin_txs = sum(e["vin_txs"] for e in profile)
             out_txs = sum(e["out_txs"] for e in profile)
-            # We think a hacker will not use an address more than 20
-            return vin_txs > 20 or out_txs > 20
+            # We think a hacker will not use an address more than 50
+            return vin_txs > 50 or out_txs > 50
 
         return False
 
