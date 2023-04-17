@@ -31,7 +31,6 @@ from ethereumetl.streaming.eth_alert_adapter import EthAlertAdapter
         allow_extra_args=True,
     )
 )
-@click.pass_context
 @evm_chain_options
 @click.option(
     "-l",
@@ -164,7 +163,6 @@ from ethereumetl.streaming.eth_alert_adapter import EthAlertAdapter
     help="In pending mode, blocks are not finalized",
 )
 def track2(
-    ctx,
     chain,
     last_synced_block_file,
     provider_uri,
@@ -186,14 +184,6 @@ def track2(
 ):
     """Track the flow of address money"""
     entity_types = parse_entity_types(entity_types)
-
-    args = [x.lstrip("--") for sub in [e.split("=") for e in ctx.args] for x in sub]
-    kwargs = dict()
-    if len(args) % 2 == 0:
-        kwargs = {
-            args[i].replace("_", "-"): args[i + 1] for i in range(0, len(args), 2)
-        }
-        logging.info(f"extra kwargs are {kwargs}")
 
     provider_uri = pick_random_provider_uri(provider_uri)
     logging.info("Using provider: " + provider_uri)
