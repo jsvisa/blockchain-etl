@@ -49,6 +49,12 @@ class TrackOracle:
         if labels is not None:
             return ";".join(labels)
 
+        if self.profiler is not None:
+            profile = self.profiler.get_profile(address)
+            return "Profile,HighInOutTxs" + ";".join(
+                f"{e['typo']}:vin-{e['vin_txs']},out-{e['out_txs']}" for e in profile
+            )
+
         # TODO: found the stop reason
         return "Coinjoin"
 
