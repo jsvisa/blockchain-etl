@@ -17,6 +17,8 @@ from blockchainetl.jobs.exporters.track_exporter import TrackExporter
 from blockchainetl.track.track_db import TrackDB
 from blockchainetl.track.track_set import TrackSets
 from blockchainetl.track.track_oracle import TrackOracle
+from blockchainetl.service.label_service import LabelService
+from blockchainetl.service.profile_service import ProfileService
 
 from bitcoinetl.rpc.bitcoin_rpc import BitcoinRpc
 from bitcoinetl.streaming.btc_streamer_adapter import BtcStreamerAdapter
@@ -160,6 +162,12 @@ from ethereumetl.service.eth_token_service import EthTokenService
     show_default=True,
     help="Bootstrap with track-file",
 )
+@click.option(
+    "--enable-profile-oracle",
+    is_flag=True,
+    show_default=True,
+    help="Enable address profile's oracle",
+)
 def track(
     ctx,
     chain,
@@ -179,6 +187,7 @@ def track(
     max_workers,
     pid_file,
     is_bootstrap,
+    enable_profile_oracle,
 ):
     """Track the flow of address money"""
     entity_types = parse_entity_types(entity_types)
@@ -202,7 +211,11 @@ def track(
         track_db_schema = chain
     track_db = TrackDB(track_db_url, track_db_schema, track_db_table)
     track_set = TrackSets()[chain]
-    track_oracle = TrackOracle(chain, track_oracle_url, "addr_labels", chain)
+    labeler = LabelService(track_oracle_url, "addr_labels", chain)
+    profiler = None
+    if enable_profile_oracle is True:
+        profiler = ProfileService(chain, track_oracle_url)
+    track_oracle = TrackOracle(chain, labeler, profiler)
 
     token_service = None
     if chain in Chain.ALL_ETHEREUM_FORKS:

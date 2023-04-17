@@ -196,7 +196,7 @@ def alert2(
         max_workers=max_workers,
         token_service=token_service,
         price_service=price_service,
-        label_service=LabelService(db_url),
+        label_service=LabelService(label_service_url),
     )
 
     streamer_adapter = EthAlertAdapter(
