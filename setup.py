@@ -38,7 +38,7 @@ long_description = read("README.md") if os.path.isfile("README.md") else ""
 
 setup(
     name="blockchain-etl",
-    version="3.0.2rc1",
+    version="3.0.2rc2",
     author="Wenbiao Zheng",
     author_email="delweng@gmail.com",
     description="Tools for exporting Ethereum/Bitcoin blockchain data into CSV/PostgreSQL",
