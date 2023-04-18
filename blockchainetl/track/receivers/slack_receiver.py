@@ -1,6 +1,6 @@
 from millify import millify
 import pandas as pd
-from typing import Optional
+from typing import Optional, Union
 import requests
 from datetime import datetime
 
@@ -86,8 +86,10 @@ class SlackReceiver(BaseReceiver):
             )
         )
 
-    def toDateTime(self, x: int) -> str:
-        return datetime.utcfromtimestamp(x).strftime("%Y-%m-%d %H:%M:%S +00")
+    def toDateTime(self, x: Union[datetime, int]) -> str:
+        if isinstance(x, int):
+            x = datetime.utcfromtimestamp(x)
+        return x.strftime("%Y-%m-%d %H:%M:%S +00")
 
     def tx_url(self, chain: str, tx: str) -> str:
         return self._explorer.tx_url(chain, tx)

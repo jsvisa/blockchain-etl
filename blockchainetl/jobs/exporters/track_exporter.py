@@ -1,6 +1,5 @@
 import logging
 import math
-import json
 import pandas as pd
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 from typing import List, Dict, Optional
@@ -77,9 +76,7 @@ class TrackExporter:
         if tracked is None:
             return
 
-        logging.info(
-            f"hit #{tracked.shape[0]} address -> {json.dumps(tracked.to_dict('records'), indent=2)}"
-        )
+        logging.info(f"hit #{tracked.shape[0]} address -> {tracked.to_dict('records')}")
 
         self._track_db.upsert(tracked)
 

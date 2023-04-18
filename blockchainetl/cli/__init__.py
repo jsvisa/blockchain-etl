@@ -10,6 +10,7 @@ from blockchainetl.cli.alert import alert
 from blockchainetl.cli.alert2 import alert2
 from blockchainetl.cli.alert_check_conf import alert_check_conf
 from blockchainetl.cli.track import track
+from blockchainetl.cli.track2 import track2
 from blockchainetl.cli.easy_dump import easy_dump
 from blockchainetl.cli.dump_exporter import dump_exporter
 from blockchainetl.cli.extract_balance import extract_balance
@@ -59,6 +60,7 @@ cli.add_command(alert, "alert")
 cli.add_command(alert2, "alert2")
 cli.add_command(alert_check_conf, "alert-check-conf")
 cli.add_command(track, "track")
+cli.add_command(track2, "track2")
 cli.add_command(easy_dump, "easy-dump")
 cli.add_command(dump_exporter, "dump-exporter")
 cli.add_command(extract_balance, "extract-balance")
