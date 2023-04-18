@@ -154,7 +154,7 @@ class AlertExporter:
         item["value_amount"] = float((item.get("value") or 0)) / 1e18
 
         if ps is not None:
-            price = ps.get_price(self._chain, day=item.get("block_timestamp"))
+            price = ps.get_price(self._chain, time=item.get("block_timestamp"))
         item["value_usd"] = item["value_amount"] * price if price else None
 
     def enrich_erc20(self, ts: TokenService, ps: PriceService, item: Dict):
@@ -177,7 +177,7 @@ class AlertExporter:
 
             if ps is not None:
                 price = ps.get_price(
-                    self._chain, token_address, day=item.get("block_timestamp")
+                    self._chain, token_address, time=item.get("block_timestamp")
                 )
             item["value_usd"] = item["value_amount"] * price if price else None
 
