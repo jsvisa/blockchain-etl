@@ -1,6 +1,7 @@
 import logging
 import math
 import pandas as pd
+import pypeln as pl
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 from typing import List, Dict, Optional
 
@@ -118,7 +119,7 @@ class TrackExporter:
             df = self.extract_ethereum_items(df)
 
         # TODO: if status is error, filter or not?
-        df: pd.DataFrame = df[df["from_address"] != df["to_address"]]
+        df: pd.DataFrame = df[df.from_address != df.to_address]
 
         tracked = df.merge(
             track_df, how="inner", left_on="from_address", right_on="address"
@@ -250,13 +251,23 @@ class TrackExporter:
         df: pd.DataFrame = df.fillna({"token_address": DEFAULT_TOKEN_ETH})[
             (df.value > 0) & (~df.to_address.isin(ETHEREUM_IGNORE_TO_ADDRESS))
         ]
+        ps = self._price_service
+        if ps is not None:
+            tokens = set(df.token_address)
+            stage = pl.thread.map(
+                lambda t: (t, ps.get_price(self.chain, t)), tokens, workers=10
+            )
+            tokens = set(t[0] for t in stage if t[1] is not None)
+            logging.info(f"filter with #{len(tokens)} tokens: {tokens}")
+            df = df[df.token_address.isin(tokens)]
+        if len(df) == 0:
+            return df
+
         df.rename(
             columns={"value": "in_value", "transaction_hash": "txhash"},
             inplace=True,
         )
         df["out_value"] = df["in_value"]
-        if len(df) == 0:
-            return df
 
         ts: EthTokenService = self._token_service
         if ts is None:
