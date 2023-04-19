@@ -11,6 +11,7 @@ from blockchainetl.track.receivers import BaseReceiver
 from blockchainetl.track.track_set import TrackSet
 from blockchainetl.track.track_oracle import TrackOracle
 from blockchainetl.service.token_service import TokenService
+from blockchainetl.service.price_service import PriceService
 from ethereumetl.service.eth_token_service import EthTokenService
 from ethereumetl.domain.token import EthToken
 from ethereumetl.misc.constant import DEFAULT_TOKEN_ETH
@@ -34,6 +35,7 @@ class TrackExporter:
         max_workers=5,
         worker_mode="thread",
         token_service: Optional[TokenService] = None,
+        price_service: Optional[PriceService] = None,
     ):
         self._chain = chain
         self._receivers = receivers
@@ -58,6 +60,7 @@ class TrackExporter:
 
         self._entities = set(entities)
         self._token_service = token_service
+        self._price_service = price_service
         self._keep_tokens = set()
 
     def open(self):
