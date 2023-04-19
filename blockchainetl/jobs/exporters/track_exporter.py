@@ -252,16 +252,22 @@ class TrackExporter:
     # filter: 1. contract call
     def extract_ethereum_items(self, df: pd.DataFrame) -> pd.DataFrame:
         # no erc20 Transfer, fill in with ETH
-        if "name" not in df.columns:
-            df["name"] = "ETH"
-        if "decimals" not in df.columns:
-            df["decimals"] = 18
         if "token_address" not in df.columns:
             df["token_address"] = DEFAULT_TOKEN_ETH
 
-        # track2
+        # track2 reads from TSDB
         if self._is_track2:
+            ETH = Chain.symbol(self._chain)
+            if "name" not in df.columns:
+                df["name"] = ETH
+            if "decimals" not in df.columns:
+                df["decimals"] = 18
             df.rename(columns={"name": "token_name"}, inplace=True)
+
+            # set trace's default value
+            df.loc[df.type.isin(["tx", "trace"]), "token_name"] = ETH
+            df.loc[df.type.isin(["tx", "trace"]), "decimals"] = 18
+
             # ignore erc721 transfers
             df = df[~df.decimals.isnull()]
 
