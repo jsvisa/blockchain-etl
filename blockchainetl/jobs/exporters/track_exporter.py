@@ -49,17 +49,19 @@ class TrackExporter:
         else:
             self._executor = ThreadPoolExecutor
 
-        entities = []
+        entities = set()
         entity_types = set(entity_types)
         if chain in Chain.ALL_BITCOIN_FORKS or EntityType.TRACE in entity_types:
-            entities.append(EntityType.TRACE)
+            entities.add(EntityType.TRACE)
         elif EntityType.TRANSACTION in entity_types:
-            entities.append(EntityType.TRANSACTION)
+            entities.add(EntityType.TRANSACTION)
 
         if EntityType.TOKEN_TRANSFER in entity_types:
-            entities.append(EntityType.TOKEN_TRANSFER)
+            entities.add(EntityType.TOKEN_TRANSFER)
+            # compitable with token_xfer(track2) and token_transfer(track1)
+            entities.add("token_xfer")
 
-        self._entities = set(entities)
+        self._entities = entities
         self._token_service = token_service
         self._price_service = price_service
         self._keep_tokens = set()
@@ -73,6 +75,8 @@ class TrackExporter:
         self._track_db.bootstrap(dataset)
 
     def export_items(self, items: List[Dict]):
+        # what we need is value > 0 and don't track too much duplicated data
+        items = [e for e in items if e["type"] in self._entities and e["value"] > 0]
         if len(items) == 0:
             return
 
@@ -94,10 +98,6 @@ class TrackExporter:
                     receiver.post(self._chain, group)
 
     def track(self, items: List[Dict]) -> Optional[pd.DataFrame]:
-        items = [e for e in items if e["type"] in self._entities]
-        if len(items) == 0:
-            return None
-
         def remap_entity_type(entity_type: str) -> str:
             return {
                 EntityType.TRANSACTION: "tx",
@@ -254,19 +254,18 @@ class TrackExporter:
             df["token_address"] = DEFAULT_TOKEN_ETH
 
         df: pd.DataFrame = df.fillna({"token_address": DEFAULT_TOKEN_ETH})[
-            (df.value > 0) & (~df.to_address.isin(ETHEREUM_IGNORE_TO_ADDRESS))
+            (~df.to_address.isin(ETHEREUM_IGNORE_TO_ADDRESS))
         ]
         tokens = self._keep_tokens.copy()
+        df_tokens = set(df.token_address)
         ps = self._price_service
         if ps is not None:
             stage = pl.thread.map(
-                lambda t: (t, ps.get_price(self.chain, t)),
-                set(df.token_address),
-                workers=10,
+                lambda t: (t, ps.get_price(self._chain, t)), df_tokens, workers=10
             )
             tokens = tokens.union(set(t[0] for t in stage if t[1] is not None))
 
-        logging.info(f"filter with #{len(tokens)} tokens: {tokens}")
+        logging.info(f"filter with #{len(tokens)}/{len(df_tokens)} tokens: {tokens}")
         df = df[df.token_address.isin(tokens)]
         if len(df) == 0:
             return df
