@@ -61,14 +61,9 @@ class TrackExporter:
         self._entities = set(entities)
         self._token_service = token_service
         self._price_service = price_service
-        self._keep_tokens = set()
 
     def open(self):
         dataset = self._trackset.dump()
-        for track in dataset:
-            token = track.get("token_address")
-            if token:
-                self._keep_tokens.add(token)
         self._track_db.bootstrap(dataset)
 
     def export_items(self, items: List[Dict]):
@@ -123,9 +118,8 @@ class TrackExporter:
             df = self.extract_ethereum_items(df)
 
         # TODO: if status is error, filter or not?
-        df = df[df["from_address"] != df["to_address"]]
+        df: pd.DataFrame = df[df["from_address"] != df["to_address"]]
 
-        # TODO: need to track all token xfers?
         tracked = df.merge(
             track_df, how="inner", left_on="from_address", right_on="address"
         )
@@ -162,10 +156,10 @@ class TrackExporter:
 
     def extract_bitcoin_items(self, df: pd.DataFrame) -> pd.DataFrame:
         df = df[
-            (df["value"] > 0)
-            & (df["vout_type"] != "nulldata")
-            & (~df["address"].isin(["nulldata", "nonstandard"]))
-        ].copy()
+            (df.value > 0)
+            & (df.vout_type != "nulldata")
+            & (~df.address.isin(["nulldata", "nonstandard"]))
+        ].copy()  # type: ignore
         df.drop(
             columns=[
                 "index",
@@ -183,66 +177,66 @@ class TrackExporter:
 
         in_tx_df = (
             df[df["is_in"] == True]
-            .rename(columns={"address": "from_address", "value": "in_value"})
-            .drop(columns=["is_in", "is_coinbase"])
-            .groupby(by=["block_number", "block_timestamp", "type", "txhash"])
+            .rename(columns={"address": "from_address", "value": "in_value"})  # type: ignore
+            .drop(columns=["is_in", "is_coinbase"])  # type: ignore
+            .groupby(by=["block_number", "block_timestamp", "type", "txhash"])  # type: ignore
             .agg({"txhash": "count", "from_address": "nunique"})
-            .rename(
+            .rename(  # type: ignore
                 columns={
                     "txhash": "n_tx_in_utxo",
                     "from_address": "n_tx_in_addr",
                 }
             )
-            .reset_index()
+            .reset_index()  # type: ignore
         )
-
+        merge_on = ["block_number", "block_timestamp", "type", "txhash"]
         # group by txhash with from/to address, and sum with value
         in_df = (
             df[df["is_in"] == True]
-            .rename(columns={"address": "from_address", "value": "in_value"})
-            .drop(columns=["is_in", "is_coinbase"])
-            .groupby(
+            .rename(columns={"address": "from_address", "value": "in_value"})  # type: ignore
+            .drop(columns=["is_in", "is_coinbase"])  # type: ignore
+            .groupby(  # type: ignore
                 by=["block_number", "block_timestamp", "type", "txhash", "from_address"]
             )
             .agg({"in_value": "sum"})
-            .reset_index()
-            .merge(in_tx_df, on=["block_number", "block_timestamp", "type", "txhash"])
+            .reset_index()  # type: ignore
+            .merge(in_tx_df, on=merge_on)  # type: ignore
         )
 
         out_tx_df = (
             df[df["is_in"] == False]
-            .rename(columns={"address": "to_address", "value": "out_value"})
-            .drop(columns=["is_in", "is_coinbase"])
-            .groupby(by=["block_number", "block_timestamp", "type", "txhash"])
+            .rename(columns={"address": "to_address", "value": "out_value"})  # type: ignore
+            .drop(columns=["is_in", "is_coinbase"])  # type: ignore
+            .groupby(by=["block_number", "block_timestamp", "type", "txhash"])  # type: ignore
             .agg({"txhash": "count", "to_address": "nunique"})
-            .rename(
+            .rename(  # type: ignore
                 columns={
                     "txhash": "n_tx_out_utxo",
                     "to_address": "n_tx_out_addr",
                 }
             )
-            .reset_index()
+            .reset_index()  # type: ignore
         )
 
         # don't need to track coinbase
         out_df = (
             df[(df["is_in"] == False) & (df["is_coinbase"] == False)]
-            .rename(columns={"address": "to_address", "value": "out_value"})
-            .drop(columns=["is_in", "is_coinbase"])
-            .groupby(
+            .rename(columns={"address": "to_address", "value": "out_value"})  # type: ignore
+            .drop(columns=["is_in", "is_coinbase"])  # type: ignore
+            .groupby(  # type: ignore
                 by=["block_number", "block_timestamp", "type", "txhash", "to_address"]
             )
             .agg({"out_value": "sum"})
-            .reset_index()
-            .merge(out_tx_df, on=["block_number", "block_timestamp", "type", "txhash"])
+            .reset_index()  # type: ignore
+            .merge(out_tx_df, on=merge_on)  # type: ignore
         )
         df = pd.merge(
             in_df, out_df, on=["block_number", "block_timestamp", "type", "txhash"]
         )
 
         df["token_name"] = "BTC"
-        df["in_value"] = df["in_value"] / 1e8
-        df["out_value"] = df["out_value"] / 1e8
+        df["in_value"] = df.in_value / 1e8
+        df["out_value"] = df.out_value / 1e8
         return df
 
     # TODO: copy the df?
@@ -253,11 +247,9 @@ class TrackExporter:
         if "token_address" not in df.columns:
             df["token_address"] = DEFAULT_TOKEN_ETH
 
-        df = df.fillna({"token_address": DEFAULT_TOKEN_ETH})[
-            (df["value"] > 0)
-            & (~df["to_address"].isin(ETHEREUM_IGNORE_TO_ADDRESS))
-            & (df["token_address"].isin(self._keep_tokens))
-        ].copy()
+        df: pd.DataFrame = df.fillna({"token_address": DEFAULT_TOKEN_ETH})[
+            (df.value > 0) & (~df.to_address.isin(ETHEREUM_IGNORE_TO_ADDRESS))
+        ]
         df.rename(
             columns={"value": "in_value", "transaction_hash": "txhash"},
             inplace=True,
@@ -276,7 +268,7 @@ class TrackExporter:
                 return val / math.pow(10, token.decimals)
             return val
 
-        df["token_name"] = df["token_address"].apply(
+        df["token_name"] = df.token_address.apply(
             lambda x: ts.get_token(x, self._chain).symbol_or_name()
         )
         df["in_value"] = df.apply(
