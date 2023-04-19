@@ -234,6 +234,7 @@ def track2(
         TrackSets.receivers,
         token_service=token_service,
         price_service=price_service,
+        is_track2=True,
     )
 
     engine = create_engine(

@@ -37,6 +37,7 @@ class TrackExporter:
         worker_mode="thread",
         token_service: Optional[TokenService] = None,
         price_service: Optional[PriceService] = None,
+        is_track2: bool = False,
     ):
         self._chain = chain
         self._receivers = receivers
@@ -64,6 +65,7 @@ class TrackExporter:
         self._entities = entities
         self._token_service = token_service
         self._price_service = price_service
+        self._is_track2 = is_track2
         self._keep_tokens = set()
 
     def open(self):
@@ -250,12 +252,22 @@ class TrackExporter:
     # filter: 1. contract call
     def extract_ethereum_items(self, df: pd.DataFrame) -> pd.DataFrame:
         # no erc20 Transfer, fill in with ETH
+        if "name" not in df.columns:
+            df["name"] = "ETH"
+        if "decimals" not in df.columns:
+            df["decimals"] = 18
         if "token_address" not in df.columns:
             df["token_address"] = DEFAULT_TOKEN_ETH
 
-        df: pd.DataFrame = df.fillna({"token_address": DEFAULT_TOKEN_ETH})[
-            (~df.to_address.isin(ETHEREUM_IGNORE_TO_ADDRESS))
-        ]
+        # track2
+        if self._is_track2:
+            df.rename(columns={"name": "token_name"}, inplace=True)
+            # ignore erc721 transfers
+            df = df[~df.decimals.isnull()]
+
+        df: pd.DataFrame = df.fillna({"token_address": DEFAULT_TOKEN_ETH})
+        df: pd.DataFrame = df[(~df.to_address.isin(ETHEREUM_IGNORE_TO_ADDRESS))]
+
         tokens = self._keep_tokens.copy()
         df_tokens = set(df.token_address)
         ps = self._price_service
@@ -265,7 +277,7 @@ class TrackExporter:
             )
             tokens = tokens.union(set(t[0] for t in stage if t[1] is not None))
 
-        logging.info(f"filter with #{len(tokens)}/{len(df_tokens)} tokens: {tokens}")
+        logging.info(f"filter with #{len(tokens)}/{len(df_tokens)} tokens")
         df = df[df.token_address.isin(tokens)]
         if len(df) == 0:
             return df
@@ -274,29 +286,29 @@ class TrackExporter:
             columns={"value": "in_value", "transaction_hash": "txhash"},
             inplace=True,
         )
+
+        if self._is_track2:
+            df["in_value"] = df.apply(
+                lambda row: row["in_value"] / math.pow(10, row["decimals"]), axis=1
+            )
+        elif self._token_service is not None:
+            ts: EthTokenService = self._token_service
+
+            def apply_decimals(token_address, val):
+                token: EthToken = ts.get_token(token_address, self._chain)
+                if token.decimals:
+                    return val / math.pow(10, token.decimals)
+                return val
+
+            df["token_name"] = df.token_address.apply(
+                lambda x: ts.get_token(x, self._chain).symbol_or_name()
+            )
+            df["in_value"] = df.apply(
+                lambda row: apply_decimals(row["token_address"], row["in_value"]),
+                axis=1,
+            )
+
         df["out_value"] = df["in_value"]
-
-        ts: EthTokenService = self._token_service
-        if ts is None:
-            return df
-
-        def apply_decimals(token_address, val):
-            token: EthToken = ts.get_token(token_address, self._chain)
-            if token.decimals:
-                return val / math.pow(10, token.decimals)
-            return val
-
-        df["token_name"] = df.token_address.apply(
-            lambda x: ts.get_token(x, self._chain).symbol_or_name()
-        )
-        df["in_value"] = df.apply(
-            lambda row: apply_decimals(row["token_address"], row["in_value"]),
-            axis=1,
-        )
-        df["out_value"] = df.apply(
-            lambda row: apply_decimals(row["token_address"], row["out_value"]),
-            axis=1,
-        )
         return df
 
     def close(self):
