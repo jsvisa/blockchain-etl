@@ -62,9 +62,14 @@ class TrackExporter:
         self._entities = set(entities)
         self._token_service = token_service
         self._price_service = price_service
+        self._keep_tokens = set()
 
     def open(self):
         dataset = self._trackset.dump()
+        for track in dataset:
+            token = track.get("token_address")
+            if token:
+                self._keep_tokens.add(token)
         self._track_db.bootstrap(dataset)
 
     def export_items(self, items: List[Dict]):
@@ -251,15 +256,18 @@ class TrackExporter:
         df: pd.DataFrame = df.fillna({"token_address": DEFAULT_TOKEN_ETH})[
             (df.value > 0) & (~df.to_address.isin(ETHEREUM_IGNORE_TO_ADDRESS))
         ]
+        tokens = self._keep_tokens.copy()
         ps = self._price_service
         if ps is not None:
-            tokens = set(df.token_address)
             stage = pl.thread.map(
-                lambda t: (t, ps.get_price(self.chain, t)), tokens, workers=10
+                lambda t: (t, ps.get_price(self.chain, t)),
+                set(df.token_address),
+                workers=10,
             )
-            tokens = set(t[0] for t in stage if t[1] is not None)
-            logging.info(f"filter with #{len(tokens)} tokens: {tokens}")
-            df = df[df.token_address.isin(tokens)]
+            tokens = tokens.union(set(t[0] for t in stage if t[1] is not None))
+
+        logging.info(f"filter with #{len(tokens)} tokens: {tokens}")
+        df = df[df.token_address.isin(tokens)]
         if len(df) == 0:
             return df
 
