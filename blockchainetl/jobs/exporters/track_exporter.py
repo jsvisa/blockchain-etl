@@ -156,8 +156,8 @@ class TrackExporter:
 
         # stop if address is known address or pattern
         tracked["stop"] = tracked.apply(self._oracle.shold_stop, axis=1)
-        tracked.loc[tracked["stop"] == True, "label"] = tracked.loc[
-            tracked["stop"] == True, "address"
+        tracked.loc[tracked.stop == True, "label"] = tracked.loc[
+            tracked.stop == True, "address"
         ].apply(self._oracle.stop_of)
 
         return tracked
