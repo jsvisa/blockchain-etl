@@ -77,6 +77,8 @@ GROUP BY
             df[col] = None
         df["hop"] = 0
         df["txhash"] = "0x" + "0" * 60
+        df["log_index"] = 0
+        df["trace_address"] = ""
         df.rename(
             columns={"description": "source", "start_block": "blknum"}, inplace=True
         )
@@ -98,12 +100,12 @@ GROUP BY
     def _to_insert_address(self):
         return f"""INSERT INTO {self._track_schema}.{self._track_table}
 (
-    address, from_address, blknum, _st, txhash, original,
-    label, hop, in_value, out_value, track_id, source,
+    address, from_address, blknum, _st, txhash, logpos, trace_address,
+    original, label, hop, in_value, out_value, track_id, source,
     token_address, token_name, stop
 ) VALUES (
-    :address, :from_address, :blknum, :_st, :txhash, :original,
-    :label, :hop, :in_value, :out_value, :track_id, :source,
+    :address, :from_address, :blknum, :_st, :txhash, :log_index, :trace_address,
+    :original, :label, :hop, :in_value, :out_value, :track_id, :source,
     :token_address, :token_name, :stop
-) ON CONFLICT(address, txhash, original) DO NOTHING
+) ON CONFLICT(address, txhash, original, logpos, trace_address) DO NOTHING
 """
