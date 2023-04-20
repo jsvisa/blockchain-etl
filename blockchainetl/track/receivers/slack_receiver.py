@@ -75,15 +75,13 @@ class SlackReceiver(BaseReceiver):
     def format_body(self, row):
         value, symbol = row["out_value"], row["token_name"]
 
-        return (
-            "`{fm}...` --[{value} {symbol}]-{hop}-> `{to}...` (STOP: `{stop}`)".format(
-                fm=row["from_address"][0:10],
-                value=millify(value, precision=2),
-                symbol=symbol,
-                hop=row["hop"],
-                to=row["address"][0:10],
-                stop=row["label"] if row["stop"] else False,
-            )
+        return "`{fm}` --[{value} {symbol}]-{hop}-> `{to}` (STOP: `{stop}`)".format(
+            fm=row["from_address"],
+            value=millify(value, precision=2),
+            symbol=symbol,
+            hop=row["hop"],
+            to=row["address"],
+            stop=row["label"] if row["stop"] else False,
         )
 
     def toDateTime(self, x: Union[datetime, int]) -> str:
