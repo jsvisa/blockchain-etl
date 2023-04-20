@@ -75,7 +75,16 @@ class SlackReceiver(BaseReceiver):
     def format_body(self, row):
         value, symbol = row["out_value"], row["token_name"]
 
-        return "`{fm}` --[{value} {symbol}]-{hop}-> `{to}` (STOP: `{stop}`)".format(
+        template = (
+            ""
+            + "txhash: `{txhash}`\n"
+            + "from: `{fm}`\n"
+            + "         --[{value} {symbol}]---HOP: {hop}--->\n"
+            + "to: `{to}`\n"
+            + "(STOP: `{stop}`)"
+        )
+        return template.format(
+            txhash=row["txhash"],
             fm=row["from_address"],
             value=millify(value, precision=2),
             symbol=symbol,
