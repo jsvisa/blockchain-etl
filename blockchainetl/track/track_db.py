@@ -1,4 +1,5 @@
 import logging
+import numpy as np
 import pandas as pd
 from typing import Dict, List
 from sqlalchemy import create_engine
@@ -65,6 +66,7 @@ GROUP BY
 
         # hard coded into track
         df["type"] = "track"
+        df.replace({"logpos": {np.nan: 0}}, inplace=True)
         self._exporter.export_items(df.to_dict("records"))
 
     def bootstrap(self, dataset: List[Dict]):
