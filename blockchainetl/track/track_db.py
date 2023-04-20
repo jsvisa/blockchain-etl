@@ -1,21 +1,35 @@
 import logging
 import pandas as pd
-from typing import Optional, Dict, List
-from functools import lru_cache
+from typing import Dict, List
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from blockchainetl.jobs.exporters import PostgresItemExporter
+from blockchainetl.streaming.postgres_utils import create_insert_statement_for_table
+from ethereumetl.streaming.postgres_tables import TRACKS
 
 
 class TrackDB:
-    def __init__(self, db_url: str, track_schema: str, track_table: str = "tracks"):
+    def __init__(self, db_url: str, track_schema: str):
         self._track_schema = track_schema
-        self._track_table = track_table
-        logging.info(f"Open track db on {db_url}")
+        logging.info(f"Open track db on {db_url} with schema: {track_schema}")
+
         self._engine = create_engine(db_url)
-        self._session = sessionmaker(self._engine)
+        self._exporter = PostgresItemExporter(
+            db_url,
+            track_schema,
+            item_type_to_insert_stmt_mapping={
+                "track": create_insert_statement_for_table(
+                    TRACKS,
+                    on_conflict_do_update=False,
+                ),
+            },
+            print_sql=False,
+            pool_size=10,
+            pool_overflow=5,
+        )
+        self._exporter.open()
 
     def all_items_df(self) -> pd.DataFrame:
-        table = "{}.{}".format(self._track_schema, self._track_table)
+        table = "{}.{}".format(self._track_schema, "tracks")
         return pd.read_sql(
             f"""
 SELECT
@@ -49,63 +63,19 @@ GROUP BY
         if "stop" not in df.columns:
             df["stop"] = False
 
-        conn = self._session()
-        for _, row in df.iterrows():
-            conn.execute(
-                self._to_insert_address(),
-                row.to_dict(),
-            )
-
-        conn.commit()
+        # hard coded into track
+        df["type"] = "track"
+        self._exporter.export_items(df.to_dict("records"))
 
     def bootstrap(self, dataset: List[Dict]):
         logging.info(f"Bootstrap tracking #{len(dataset)} address")
         df = pd.DataFrame(dataset)
         df["original"] = df["address"]
-
-        # fillin none columns
-        for col in (
-            "from_address",
-            "_st",
-            "in_value",
-            "out_value",
-            "token_address",
-            "token_name",
-        ):
-            if col in df.columns:
-                continue
-            df[col] = None
-        df["hop"] = 0
         df["txhash"] = "0x" + "0" * 60
-        df["log_index"] = 0
+        df["logpos"] = 0
         df["trace_address"] = ""
+
         df.rename(
             columns={"description": "source", "start_block": "blknum"}, inplace=True
         )
         self.upsert(df)
-
-    @lru_cache(maxsize=102400)
-    def get_label_by_address(self, address) -> Optional[str]:
-        table = "{}.{}".format(self._track_schema, self._track_table)
-        sql = f"SELECT label FROM {table} WHERE address = '{address}'"
-        result = self._engine.execute(sql)
-        if result is None:
-            return None
-        row = result.fetchone()
-        if row is None:
-            return None
-
-        return row["label"]
-
-    def _to_insert_address(self):
-        return f"""INSERT INTO {self._track_schema}.{self._track_table}
-(
-    address, from_address, blknum, _st, txhash, logpos, trace_address,
-    original, label, hop, in_value, out_value, track_id, source,
-    token_address, token_name, stop
-) VALUES (
-    :address, :from_address, :blknum, :_st, :txhash, :log_index, :trace_address,
-    :original, :label, :hop, :in_value, :out_value, :track_id, :source,
-    :token_address, :token_name, :stop
-) ON CONFLICT(address, txhash, original, logpos, trace_address) DO NOTHING
-"""

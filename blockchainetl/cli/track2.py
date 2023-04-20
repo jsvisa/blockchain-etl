@@ -95,13 +95,6 @@ from ethereumetl.streaming.eth_alert_adapter import EthAlertAdapter
     help="The track db schema",
 )
 @click.option(
-    "--track-db-table",
-    default="tracks",
-    show_default=True,
-    envvar="BLOCKCHAIN_ETL_TRACK_DB_TABLE",
-    help="The track db table",
-)
-@click.option(
     "-F",
     "--track-bootstrap-file",
     type=click.Path(exists=True, readable=True, file_okay=True),
@@ -184,7 +177,6 @@ def track2(
     data_db_url,
     track_db_url,
     track_db_schema,
-    track_db_table,
     track_bootstrap_file,
     track_oracle_url,
     period_seconds,
@@ -208,7 +200,7 @@ def track2(
     TrackSets.open()
     if track_db_schema is None:
         track_db_schema = chain
-    track_db = TrackDB(track_db_url, track_db_schema, track_db_table)
+    track_db = TrackDB(track_db_url, track_db_schema)
     track_set = TrackSets()[chain]
     labeler = LabelService(track_oracle_url, "addr_labels", chain)
     profiler = None
