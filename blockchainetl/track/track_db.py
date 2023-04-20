@@ -15,16 +15,28 @@ class TrackDB:
         self._session = sessionmaker(self._engine)
 
     def all_items_df(self) -> pd.DataFrame:
+        table = "{}.{}".format(self._track_schema, self._track_table)
         return pd.read_sql(
             f"""
 SELECT
-    address, original, label, track_id, min(hop) AS hop
-FROM
-    {self._track_schema}.{self._track_table}
+    address,
+    original,
+    label,
+    track_id,
+    min(hop) AS hop
+FROM (
+    SELECT
+        *,
+        row_number() OVER (PARTITION BY address, label, track_id ORDER BY hop, created_at) AS _rank
+    FROM
+        {table}
+    WHERE
+        stop IS FALSE
+    ) _
 WHERE
-    stop is false
+    _rank = 1
 GROUP BY
-    1,2,3,4
+    1, 2, 3, 4
 """,
             con=self._engine,
         )
