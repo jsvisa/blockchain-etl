@@ -55,7 +55,6 @@ GROUP BY
         for col in (
             "from_address",
             "_st",
-            "txhash",
             "in_value",
             "out_value",
             "token_address",
@@ -65,14 +64,16 @@ GROUP BY
                 continue
             df[col] = None
         df["hop"] = 0
+        df["txhash"] = "0x" + "0" * 60
         df.rename(
             columns={"description": "source", "start_block": "blknum"}, inplace=True
         )
         self.upsert(df)
 
-    @lru_cache(maxsize=1024000)
+    @lru_cache(maxsize=102400)
     def get_label_by_address(self, address) -> Optional[str]:
-        sql = f"SELECT label FROM {self._track_schema}.{self._track_table} WHERE address = '{address}'"
+        table = "{}.{}".format(self._track_schema, self._track_table)
+        sql = f"SELECT label FROM {table} WHERE address = '{address}'"
         result = self._engine.execute(sql)
         if result is None:
             return None
@@ -92,5 +93,5 @@ GROUP BY
     :address, :from_address, :blknum, :_st, :txhash, :original,
     :label, :hop, :in_value, :out_value, :track_id, :source,
     :token_address, :token_name, :stop
-) ON CONFLICT(address, original, token_name, token_address) DO NOTHING
+) ON CONFLICT(address, txhash, original) DO NOTHING
 """
