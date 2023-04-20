@@ -143,9 +143,11 @@ class TrackExporter:
             columns={
                 "to_address": "address",
                 "block_number": "blknum",
-                "block_timestamp": "_st",
+                "transaction_hash": "txhash",
+                "log_index": "logpos",
             },
             inplace=True,
+            errors="ignore",
         )
         tracked["hop"] += 1
 
@@ -288,10 +290,7 @@ class TrackExporter:
         if len(df) == 0:
             return df
 
-        df.rename(
-            columns={"value": "in_value", "transaction_hash": "txhash"},
-            inplace=True,
-        )
+        df.rename(columns={"value": "in_value"}, inplace=True)
 
         if self._is_track2:
             df["in_value"] = df.apply(

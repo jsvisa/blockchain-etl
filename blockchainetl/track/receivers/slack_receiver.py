@@ -35,9 +35,9 @@ class SlackReceiver(BaseReceiver):
 
         msg_grouped = (
             result.sort_values(
-                ["blknum", "_st", "txhash", "out_value"], ascending=False
+                ["blknum", "block_timestamp", "txhash", "out_value"], ascending=False
             )
-            .groupby(by=["track_id", "blknum", "_st", "txhash"])  # type: ignore
+            .groupby(by=["track_id", "blknum", "block_timestamp", "txhash"])  # type: ignore
             .agg({"msg": list})
             .reset_index()  # type: ignore
         )
@@ -53,7 +53,7 @@ class SlackReceiver(BaseReceiver):
                 payload["channel"] = self._channel
 
             pretext = f"Chain: `{chain}` TrackID: `{row['track_id']}` Block: `{row['blknum']}` "
-            pretext += f"Datetime: `{self.toDateTime(row['_st'])}` <{self.tx_url(chain, row['txhash'])}|Click here for more detail>"  # noqa: E501
+            pretext += f"Datetime: `{self.toDateTime(row['block_timestamp'])}` <{self.tx_url(chain, row['txhash'])}|Click here for more detail>"  # noqa: E501
 
             msg = "\n".join(row["msg"][:10])
             if len(row["msg"]) > 10:
