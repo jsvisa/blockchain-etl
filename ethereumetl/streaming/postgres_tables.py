@@ -12,6 +12,7 @@ from sqlalchemy import (
     MetaData,
     Text,
     Boolean,
+    TIMESTAMP,
 )
 
 metadata = MetaData()
@@ -607,4 +608,30 @@ LATEST_BALANCES = Table(
     Column("balance", Numeric),
     Column("created_at", DateTime, server_default=func.current_timestamp()),
     Column("updated_at", DateTime, server_default=func.current_timestamp()),
+)
+
+TRACKS = Table(
+    "tracks",
+    metadata,
+    Column("id", BigInteger),
+    Column("address", String, primary_key=True),
+    Column("from_address", String, primary_key=True),
+    Column("block_timestamp", TIMESTAMP),
+    Column("blknum", BigInteger),
+    Column("txhash", String, primary_key=True),
+    Column("logpos", BigInteger),
+    Column("trace_address", Text),
+    Column("original", String),
+    Column("label", String),
+    Column("hop", Integer),
+    Column("in_value", Numeric),
+    Column("out_value", Numeric),
+    Column("token_address", String),
+    Column("token_name", String),
+    Column("track_id", String),
+    Column("source", String),
+    Column("stop", Boolean, default=False),
+    Column("created_at", DateTime, server_default=func.current_timestamp()),
+    Column("updated_at", DateTime, server_default=func.current_timestamp()),
+    Column("deleted_at", DateTime, server_default=None),
 )
