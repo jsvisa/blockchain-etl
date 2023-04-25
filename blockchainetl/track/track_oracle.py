@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 from typing import Optional
 from blockchainetl.enumeration.chain import Chain
@@ -5,6 +6,9 @@ from blockchainetl.service.label_service import LabelService
 from blockchainetl.service.profile_service import ProfileService
 
 STOP_CATEGORIES = ("Exchange", "Service", "Dex")
+
+VIN_TXS = int(os.getenv("BLOCKCHAIN_ETL_TRACK_ORACLE_PROFILE_VIN_TXS", 100))
+OUT_TXS = int(os.getenv("BLOCKCHAIN_ETL_TRACK_ORACLE_PROFILE_OUT_TXS", 100))
 
 
 class TrackOracle:
@@ -37,8 +41,9 @@ class TrackOracle:
             profile = self.profiler.get_profile(address)
             vin_txs = sum(e["vin_txs"] for e in profile)
             out_txs = sum(e["out_txs"] for e in profile)
-            # We think a hacker will not use an address more than 50
-            return vin_txs > 50 or out_txs > 50
+
+            # We think a hacker will not use an address more than threshold
+            return vin_txs > VIN_TXS and out_txs > OUT_TXS
 
         return False
 
@@ -51,7 +56,7 @@ class TrackOracle:
 
         if self.profiler is not None:
             profile = self.profiler.get_profile(address)
-            return "Profile,HighInOutTxs" + ";".join(
+            return "Profile,HighInOutTxs;" + ";".join(
                 f"{e['typo']}:vin-{e['vin_txs']},out-{e['out_txs']}" for e in profile
             )
 

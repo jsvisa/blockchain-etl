@@ -58,6 +58,12 @@ from blockchainetl.service.price_service import PriceService
     help="The price connection url, used in price service",
 )
 @click.option(
+    "--price-apikey",
+    type=str,
+    envvar="BLOCKCHAIN_ETL_PRICE_SERVICE_API_KEY",
+    help="The price service api key",
+)
+@click.option(
     "-s",
     "--start-block",
     default=None,
@@ -146,6 +152,7 @@ def alert2(
     db_url,
     provider_uri,
     price_url,
+    price_apikey,
     start_block,
     end_block,
     entity_types,
@@ -186,7 +193,7 @@ def alert2(
     if chain in Chain.ALL_ETHEREUM_FORKS:
         web3 = Web3(HTTPProvider(provider_uri))
         token_service = EthTokenService(web3)
-    price_service = PriceService(price_url)
+    price_service = PriceService(price_url, price_apikey)
 
     alert_exporter = AlertExporter(
         chain,

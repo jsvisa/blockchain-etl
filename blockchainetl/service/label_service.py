@@ -15,6 +15,7 @@ class LabelService:
     # cache for 1hour
     @cached(cache=TTLCache(maxsize=10000, ttl=3600), lock=Lock())
     def label_of(self, address: str) -> Optional[Set[str]]:
+        address = address.lower()
         result = self._engine.execute(
             f"SELECT address, label FROM {self._db_table} WHERE address = %s LIMIT 10",
             address,
@@ -22,6 +23,8 @@ class LabelService:
         if result is None:
             return None
         rows = result.fetchall()
+        if len(rows) == 0:
+            return None
         return set(row["label"] for row in rows)
 
     def category_of(self, address: str) -> Set[str]:

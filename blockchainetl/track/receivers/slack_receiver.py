@@ -35,9 +35,9 @@ class SlackReceiver(BaseReceiver):
 
         msg_grouped = (
             result.sort_values(
-                ["blknum", "_st", "txhash", "out_value"], ascending=False
+                ["blknum", "block_timestamp", "txhash", "out_value"], ascending=False
             )
-            .groupby(by=["track_id", "blknum", "_st", "txhash"])  # type: ignore
+            .groupby(by=["track_id", "blknum", "block_timestamp", "txhash"])  # type: ignore
             .agg({"msg": list})
             .reset_index()  # type: ignore
         )
@@ -53,7 +53,7 @@ class SlackReceiver(BaseReceiver):
                 payload["channel"] = self._channel
 
             pretext = f"Chain: `{chain}` TrackID: `{row['track_id']}` Block: `{row['blknum']}` "
-            pretext += f"Datetime: `{self.toDateTime(row['_st'])}` <{self.tx_url(chain, row['txhash'])}|Click here for more detail>"  # noqa: E501
+            pretext += f"Datetime: `{self.toDateTime(row['block_timestamp'])}` <{self.tx_url(chain, row['txhash'])}|Click here for more detail>"  # noqa: E501
 
             msg = "\n".join(row["msg"][:10])
             if len(row["msg"]) > 10:
@@ -75,15 +75,22 @@ class SlackReceiver(BaseReceiver):
     def format_body(self, row):
         value, symbol = row["out_value"], row["token_name"]
 
-        return (
-            "`{fm}...` --[{value} {symbol}]-{hop}-> `{to}...` (STOP: `{stop}`)".format(
-                fm=row["from_address"][0:10],
-                value=millify(value, precision=2),
-                symbol=symbol,
-                hop=row["hop"],
-                to=row["address"][0:10],
-                stop=row["label"] if row["stop"] else False,
-            )
+        template = (
+            ""
+            + "txhash: `{txhash}`\n"
+            + "from: `{fm}`\n"
+            + "         --[{value} {symbol}]---HOP: {hop}--->\n"
+            + "to: `{to}`\n"
+            + "(STOP: `{stop}`)"
+        )
+        return template.format(
+            txhash=row["txhash"],
+            fm=row["from_address"],
+            value=millify(value, precision=2),
+            symbol=symbol,
+            hop=row["hop"],
+            to=row["address"],
+            stop=row["label"] if row["stop"] else False,
         )
 
     def toDateTime(self, x: Union[datetime, int]) -> str:

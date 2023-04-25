@@ -16,7 +16,7 @@ from blockchainetl.track.track_set import TrackSets
 from blockchainetl.track.track_oracle import TrackOracle
 from blockchainetl.service.label_service import LabelService
 from blockchainetl.service.profile_service import ProfileService
-
+from blockchainetl.service.price_service import PriceService
 
 from ethereumetl.providers.auto import get_provider_from_uri
 from ethereumetl.service.eth_token_service import EthTokenService
@@ -95,13 +95,6 @@ from ethereumetl.streaming.eth_alert_adapter import EthAlertAdapter
     help="The track db schema",
 )
 @click.option(
-    "--track-db-table",
-    default="tracks",
-    show_default=True,
-    envvar="BLOCKCHAIN_ETL_TRACK_DB_TABLE",
-    help="The track db table",
-)
-@click.option(
     "-F",
     "--track-bootstrap-file",
     type=click.Path(exists=True, readable=True, file_okay=True),
@@ -162,6 +155,18 @@ from ethereumetl.streaming.eth_alert_adapter import EthAlertAdapter
     show_default=True,
     help="In pending mode, blocks are not finalized",
 )
+@click.option(
+    "--price-url",
+    type=str,
+    envvar="BLOCKCHAIN_ETL_PRICE_SERVICE_URL",
+    help="The price connection url, used in price service",
+)
+@click.option(
+    "--price-apikey",
+    type=str,
+    envvar="BLOCKCHAIN_ETL_PRICE_SERVICE_API_KEY",
+    help="The price service api key",
+)
 def track2(
     chain,
     last_synced_block_file,
@@ -172,7 +177,6 @@ def track2(
     data_db_url,
     track_db_url,
     track_db_schema,
-    track_db_table,
     track_bootstrap_file,
     track_oracle_url,
     period_seconds,
@@ -181,6 +185,8 @@ def track2(
     is_bootstrap,
     enable_profile_oracle,
     pending_mode,
+    price_url,
+    price_apikey,
 ):
     """Track the flow of address money"""
     entity_types = parse_entity_types(entity_types)
@@ -194,7 +200,7 @@ def track2(
     TrackSets.open()
     if track_db_schema is None:
         track_db_schema = chain
-    track_db = TrackDB(track_db_url, track_db_schema, track_db_table)
+    track_db = TrackDB(track_db_url, track_db_schema)
     track_set = TrackSets()[chain]
     labeler = LabelService(track_oracle_url, "addr_labels", chain)
     profiler = None
@@ -207,6 +213,10 @@ def track2(
         web3 = Web3(HTTPProvider(provider_uri))
         token_service = EthTokenService(web3)
 
+    price_service = None
+    if price_url is not None:
+        price_service = PriceService(price_url, price_apikey)
+
     track_exporter = TrackExporter(
         chain,
         track_db,
@@ -215,6 +225,8 @@ def track2(
         entity_types,
         TrackSets.receivers,
         token_service=token_service,
+        price_service=price_service,
+        is_track2=True,
     )
 
     engine = create_engine(
