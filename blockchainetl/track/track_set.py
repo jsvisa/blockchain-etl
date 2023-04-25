@@ -97,7 +97,8 @@ class TrackSets(object):
         for name, args in receivers.items():
             typo = args["receiver"]
             init_args = args["init_args"]
-            m = module(f"blockchainetl.track.receivers.{typo}_receiver")
+            _m = args.get("module", f"blockchainetl.track.receivers.{typo}_receiver")
+            m = module(_m)
             c = getattr(m, f"{typo.title()}Receiver")
             init_args.update({"explorer": TrackExplorer(explorers)})
             cls.receivers[name] = c(**init_args)
