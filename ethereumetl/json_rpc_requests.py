@@ -83,6 +83,17 @@ def generate_get_log_by_number_json_rpc(
     )
 
 
+def generate_parity_trace_block_by_number_json_rpc(
+    block_numbers: List[int],
+) -> Generator[Dict[str, Union[str, int]], None, None]:
+    for block_number in block_numbers:
+        yield generate_json_rpc(
+            method="trace_block",
+            params=[hex(block_number)],
+            request_id=block_number,
+        )
+
+
 def generate_trace_block_by_number_json_rpc(
     block_numbers: List[int],
     tracer: str = env.GETH_TRACE_MODULE,

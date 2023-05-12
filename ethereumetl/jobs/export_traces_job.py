@@ -25,7 +25,6 @@ import logging
 from collections import defaultdict
 
 from web3 import Web3
-from web3.types import ParityFilterParams
 from typing import List, Dict, Optional, Generator, Tuple
 from blockchainetl.executors.batch_work_executor import BatchWorkExecutor
 from blockchainetl.jobs.base_job import BaseJob
@@ -44,6 +43,7 @@ from ethereumetl.json_rpc_requests import (
     generate_trace_block_by_number_json_rpc,
     generate_trace_transaction_json_rpc,
     generate_arbtrace_block_by_number_json_rpc,
+    generate_parity_trace_block_by_number_json_rpc,
 )
 from ethereumetl.service.trace_id_calculator import calculate_trace_ids
 from ethereumetl.service.trace_status_calculator import calculate_trace_statuses
@@ -137,32 +137,24 @@ class ExportTracesJob(BaseJob):
             self.item_exporter.export_item(self.trace_mapper.trace_to_dict(trace))
 
     def _export_batch_parity(self, block_number_batch: List[int]) -> List[EthTrace]:
-        params = ParityFilterParams(
-            {
-                "fromBlock": hex(block_number_batch[0]),
-                "toBlock": hex(block_number_batch[-1]),
-            }
+        trace_block_rpc = list(
+            generate_parity_trace_block_by_number_json_rpc(block_number_batch)
         )
-        try:
-            json_traces = self.web3.parity.trace_filter(params)
-        except ValueError as e:
-            if env.PARITY_TRACE_IGNORE_ERROR is True:
-                logging.error(f"failed to trace {params} error: {e}")
-                return []
-            else:
-                raise e
+        if self.batch_size == 1:
+            trace_block_rpc = trace_block_rpc[0]
+        response = self.batch_web3_provider.make_batch_request(
+            json.dumps(trace_block_rpc)
+        )
 
-        if json_traces is None:
-            raise ValueError(
-                "Response from the node for blocks: {} is None. Is the node fully synced?".format(
-                    block_number_batch
-                )
-            )
+        if self.batch_size == 1:
+            response = response[0]
 
-        return [
-            self.trace_mapper.json_dict_to_trace(json_trace)
-            for json_trace in json_traces
-        ]
+        traces = []
+        for block_trace in response:
+            for trace in block_trace["result"]:
+                traces.append(self.trace_mapper.json_dict_to_trace(trace))
+
+        return traces
 
     def _export_batch_geth(self, block_number_batch: List[int]) -> List[EthTrace]:
         json_traces: List[EthTrace] = []
