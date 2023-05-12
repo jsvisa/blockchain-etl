@@ -11,7 +11,6 @@ from blockchainetl.jobs.exporters.console_item_exporter import ConsoleItemExport
 from blockchainetl.enumeration.entity_type import EntityType
 from blockchainetl.enumeration.chain import Chain
 from ethereumetl.providers.rpc import BatchHTTPProvider
-from ethereumetl.mappers.log_mapper import EthLogMapper
 from ethereumetl.streaming.extractor import (
     extract_token_transfers,
     extract_erc1155_transfers,
@@ -53,7 +52,6 @@ class EthTokenHolderAdapter(EthBaseAdapter):
         exclude_tokens: Optional[Set[str]] = None,
     ):
         self.entity_types = entity_types
-        self.log_mapper = EthLogMapper()
         self.is_detail = is_detail
 
         self.include_tokens = (
