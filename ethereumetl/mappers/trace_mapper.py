@@ -71,11 +71,11 @@ class EthTraceMapper(object):
             trace.to_address = to_normalized_address(action.get("to"))
             trace.input = action.get("input")
             trace.output = result.get("output")
-        elif trace_type == "create":
+        elif trace_type in ("create", "create2"):
             trace.to_address = result.get("address")
             trace.input = action.get("init")
             trace.output = result.get("code")
-        elif trace_type == "suicide":
+        elif trace_type in ("selfdestruct", "suicide"):
             trace.from_address = to_normalized_address(action.get("address"))
             trace.to_address = to_normalized_address(action.get("refundAddress"))
             trace.value = hex_to_dec(action.get("balance"))
