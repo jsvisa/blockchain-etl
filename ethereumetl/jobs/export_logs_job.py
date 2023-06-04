@@ -28,8 +28,6 @@ class ExportLogsJob(BaseJob):
         else:
             validate_range(start_block, end_block)
             self.blocks = range(start_block, end_block + 1)
-        self.start_block = start_block
-        self.end_block = end_block
         self.topics = topics
         self.address = address
 
