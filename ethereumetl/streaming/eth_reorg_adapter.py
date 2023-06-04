@@ -146,7 +146,7 @@ class EthReorgAdapter(EthBaseAdapter):
 
         diff_blocks = self.reconcile_blocks(new_blocks, old_blocks)
         if len(diff_blocks) == 0:
-            logging.info(f"Reorg not detected for blocks:{start_block, end_block}")
+            logging.info(f"Reorg not detected for blocks: {start_block, end_block}")
             return
 
         # 0. Export blocks and transactions

@@ -39,6 +39,13 @@ from ethereumetl.streaming.utils import build_erc20_token_reader
     help="The file with the last reorg checked block number.",
 )
 @click.option(
+    "--lag",
+    default=1,
+    show_default=True,
+    type=int,
+    help="The number of blocks to lag behind the network, ensure all data are ready in PostgreSQL.",
+)
+@click.option(
     "-p",
     "--provider-uri",
     show_default=True,
@@ -141,6 +148,7 @@ def reorg(
     ctx,
     chain,
     last_synced_block_file,
+    lag,
     provider_uri,
     source_db_url,
     entity_types,
@@ -211,6 +219,7 @@ def reorg(
 
     while True:
         blknum, _ = reorg_adapter.get_current_block_number()
-        reorg_adapter.export_all(blknum - block_batch_size, blknum)
+        start_block, end_block = blknum - block_batch_size - lag, blknum - lag
+        reorg_adapter.export_all(start_block, end_block)
         write_last_synced_block(last_synced_block_file, blknum)
         time.sleep(period_seconds)
