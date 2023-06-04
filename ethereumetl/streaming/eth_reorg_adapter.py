@@ -100,11 +100,12 @@ class EthReorgAdapter(EthBaseAdapter):
         return {e["blknum"]: e["blkhash"] for e in rows}
 
     def reconcile_blocks(self, new_blocks, old_blocks):
-        return [
-            e["number"]
-            for e in new_blocks
-            if e["number"] not in old_blocks or e["hash"] != old_blocks[e["number"]]
-        ]
+        diff = {}
+        for n in new_blocks:
+            blknum = n["number"]
+            if old_blocks.get(blknum) != n["hash"]:
+                diff[blknum] = (old_blocks.get(blknum), n["hash"])
+        return diff
 
     def delete_entity(self, entity_type, start_timestamp, blocks):
         et = EntityTable()
@@ -150,7 +151,7 @@ class EthReorgAdapter(EthBaseAdapter):
 
         # 0. Export blocks and transactions
         blocks, transactions = self.export_blocks_and_transactions(
-            start_block=None, end_block=None, blocks=diff_blocks
+            start_block=None, end_block=None, blocks=diff_blocks.keys()
         )
         enriched_blocks = blocks if EntityType.BLOCK in self.entity_types else []
 
@@ -164,7 +165,7 @@ class EthReorgAdapter(EthBaseAdapter):
                 and EntityType.RECEIPT not in self.entity_types
             ):
                 logs = self.export_logs(
-                    start_block=None, end_block=None, blocks=diff_blocks
+                    start_block=None, end_block=None, blocks=diff_blocks.keys()
                 )
 
             # 1.1 receipt/log
@@ -244,7 +245,7 @@ class EthReorgAdapter(EthBaseAdapter):
         # Geth's trace missing txhash
         traces = []
         if self._should_export(EntityType.TRACE):
-            traces = self._export_traces(diff_blocks, transactions)
+            traces = self._export_traces(diff_blocks.keys(), transactions)
 
         # 11. Enrich traces with block hash/timestamp and txhash(only Geth)
         enriched_traces = (
@@ -297,7 +298,7 @@ class EthReorgAdapter(EthBaseAdapter):
         self.calculate_item_ids(all_items)
         self.calculate_item_timestamps(all_items)
 
-        dropped = self.drop_old_blocks(start_timestamp, diff_blocks)
+        dropped = self.drop_old_blocks(start_timestamp, diff_blocks.keys())
         self.item_exporter.export_items(all_items)
         st2 = time()
         logging.info(
