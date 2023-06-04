@@ -1,6 +1,6 @@
 import logging
 from time import time
-from datetime import datetime
+from datetime import datetime, text
 from collections import defaultdict
 from collections.abc import Callable
 from typing import Set, Optional
@@ -110,10 +110,11 @@ class EthReorgAdapter(EthBaseAdapter):
     def delete_entity(self, entity_type, start_timestamp, blocks):
         et = EntityTable()
         with self.target_engine.begin() as conn:
-            result = conn.execute(
-                f"DELETE FROM {self.target_schema}.{et[entity_type]} WHERE block_timestamp >= %s AND blknum IN (%s)",
-                (start_timestamp, ",".join(str(e) for e in blocks)),
+            sql = text(
+                f"DELETE FROM {self.target_schema}.{et[entity_type]} "
+                f"WHERE block_timestamp >= '{start_timestamp}' AND blknum IN ({','.join(str(e) for e in blocks)})"
             )
+            result = conn.execute(sql)
             return result.rowcount
 
     def drop_old_blocks(self, start_timestamp, blocks):
