@@ -88,11 +88,13 @@ class EthReorgAdapter(EthBaseAdapter):
             self, chain, batch_web3_provider, item_exporter, batch_size, max_workers
         )
 
-    def fetch_old_blocks(self, start_block: int, end_block: int, start_timestamp: int):
+    def fetch_old_blocks(
+        self, start_block: int, end_block: int, start_timestamp: datetime
+    ):
         with self.target_engine.connect() as conn:
             result = conn.execute(
                 f"SELECT blknum, blkhash FROM {self.target_schema}.blocks WHERE block_timestamp >= %s AND blknum >= %s AND blknum <= %s",
-                (datetime.utcfromtimestamp(start_timestamp), start_block, end_block),
+                (start_timestamp, start_block, end_block),
             )
             rows = result.fetchall()
         return {e["blknum"]: e["blkhash"] for e in rows}
@@ -101,16 +103,15 @@ class EthReorgAdapter(EthBaseAdapter):
         return [
             e["number"]
             for e in new_blocks
-            if e not in old_blocks or e["hash"] != old_blocks[e]
+            if e["number"] not in old_blocks or e["hash"] != old_blocks[e["number"]]
         ]
 
     def delete_entity(self, entity_type, start_timestamp, blocks):
         et = EntityTable()
         with self.target_engine.begin() as conn:
             result = conn.execute(
-                f"DELETE FROM {self.target_schema}.{et[entity_type]} WHERE block_timestamp >= :start_timestamp AND blknum IN (:ids)",
-                start_timestamp=start_timestamp,
-                ids=blocks,
+                f"DELETE FROM {self.target_schema}.{et[entity_type]} WHERE block_timestamp >= %s AND blknum IN (%s)",
+                (start_timestamp, ",".join(str(e) for e in blocks)),
             )
             return result.rowcount
 
@@ -137,7 +138,9 @@ class EthReorgAdapter(EthBaseAdapter):
         st0 = time()
 
         new_blocks = self.export_blocks(start_block, end_block)
-        start_timestamp = min(e["timestamp"] for e in new_blocks) - 3600
+        start_timestamp = datetime.utcfromtimestamp(
+            min(e["timestamp"] for e in new_blocks) - 3600
+        )
         old_blocks = self.fetch_old_blocks(start_block, end_block, start_timestamp)
 
         diff_blocks = self.reconcile_blocks(new_blocks, old_blocks)

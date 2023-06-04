@@ -99,13 +99,6 @@ from ethereumetl.streaming.utils import build_erc20_token_reader
     help="Enable online enrich(token_xfer with name/symbol/decimals)",
 )
 @click.option(
-    "--pid-file",
-    default=None,
-    show_default=True,
-    type=str,
-    help="The pid file",
-)
-@click.option(
     "--pending-mode",
     is_flag=True,
     show_default=True,
@@ -193,7 +186,7 @@ def reorg(
     )
 
     reorg_adapter = EthReorgAdapter(
-        schema=schema,
+        target_schema=schema,
         target_db_url=target_db_url,
         batch_web3_provider=ThreadLocalProxy(
             lambda: get_provider_from_uri(provider_uri, batch=True)
@@ -217,7 +210,7 @@ def reorg(
     )
 
     while True:
-        blknum, timetamp = reorg_adapter.get_current_block_number()
+        blknum, _ = reorg_adapter.get_current_block_number()
         reorg_adapter.export_all(blknum - block_batch_size, blknum)
         write_last_synced_block(last_synced_block_file, blknum)
         time.sleep(period_seconds)
