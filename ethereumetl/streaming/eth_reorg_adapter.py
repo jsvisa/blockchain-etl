@@ -1,10 +1,10 @@
 import logging
 from time import time
-from datetime import datetime, text
+from datetime import datetime
 from collections import defaultdict
 from collections.abc import Callable
 from typing import Set, Optional
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 
 from web3 import Web3
 
