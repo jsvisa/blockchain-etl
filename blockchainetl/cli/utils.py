@@ -5,6 +5,7 @@ from typing import Optional, Dict
 
 from blockchainetl.enumeration.chain import Chain
 
+
 # register global options
 def global_click_options(func):
     @click.option(
