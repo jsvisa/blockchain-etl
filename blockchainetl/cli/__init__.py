@@ -45,7 +45,7 @@ configure_signals()
 
 
 @click.group(context_settings=dict(help_option_names=["-h", "--help"]))
-@click.version_option(version="v3.0.2")
+@click.version_option(version="v3.0.3")
 @click.pass_context
 def cli(ctx):
     ctx = ctx
