@@ -226,9 +226,13 @@ def reorg(
 
     if dryrun is True:
         blknum, _ = reorg_adapter.get_current_block_number()
-        start_block, end_block = blknum - block_batch_size, blknum
+        start_block, end_block = blknum - block_batch_size - lag, blknum - lag
         _, diff = reorg_adapter.reconcile_blocks(start_block, end_block)
-        logging.info(f"Reorg dryrun check: {diff}")
+        notfound = {k: v[1] for k, v in diff.items() if v[0] is None}
+        notmatch = {k: v for k, v in diff.items() if v[0] is not None}
+        logging.info(
+            f"Reorg dryrun check results, notfound: {notfound} notmatch: {notmatch}"
+        )
         return
 
     while True:
