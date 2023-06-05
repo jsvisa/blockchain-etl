@@ -131,9 +131,7 @@ class EthReorgAdapter(EthBaseAdapter):
         rowcount = 0
         for entity in entities:
             if self._should_export(entity):
-                rowcount += self.delete_entity(
-                    EntityType.BLOCK, start_timestamp, blocks
-                )
+                rowcount += self.delete_entity(entity, start_timestamp, blocks)
         return rowcount
 
     def export_all(self, start_block, end_block):
