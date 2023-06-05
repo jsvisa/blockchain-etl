@@ -86,7 +86,7 @@ from ethereumetl.streaming.utils import build_erc20_token_reader
 @click.option(
     "-B",
     "--block-batch-size",
-    default=1000,
+    default=512,
     show_default=True,
     type=int,
     help="How many blocks to be checked",
