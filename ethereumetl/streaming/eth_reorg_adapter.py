@@ -99,13 +99,19 @@ class EthReorgAdapter(EthBaseAdapter):
             rows = result.fetchall()
         return {e["blknum"]: e["blkhash"] for e in rows}
 
-    def reconcile_blocks(self, new_blocks, old_blocks):
+    def reconcile_blocks(self, start_block: int, end_block: int):
+        new_blocks = self.export_blocks(start_block, end_block)
+        start_timestamp = datetime.utcfromtimestamp(
+            min(e["timestamp"] for e in new_blocks) - 3600
+        )
+        old_blocks = self.fetch_old_blocks(start_block, end_block, start_timestamp)
+
         diff = {}
         for n in new_blocks:
             blknum = n["number"]
             if old_blocks.get(blknum) != n["hash"]:
                 diff[blknum] = (old_blocks.get(blknum), n["hash"])
-        return diff
+        return start_timestamp, diff
 
     def delete_entity(self, entity_type, start_timestamp, blocks):
         et = EntityTable()
@@ -137,13 +143,7 @@ class EthReorgAdapter(EthBaseAdapter):
     def export_all(self, start_block, end_block):
         st0 = time()
 
-        new_blocks = self.export_blocks(start_block, end_block)
-        start_timestamp = datetime.utcfromtimestamp(
-            min(e["timestamp"] for e in new_blocks) - 3600
-        )
-        old_blocks = self.fetch_old_blocks(start_block, end_block, start_timestamp)
-
-        diff_blocks = self.reconcile_blocks(new_blocks, old_blocks)
+        start_timestamp, diff_blocks = self.reconcile_blocks(start_block, end_block)
         if len(diff_blocks) == 0:
             logging.info(f"Reorg not detected for blocks: {start_block, end_block}")
             return

@@ -40,10 +40,10 @@ from ethereumetl.streaming.utils import build_erc20_token_reader
 )
 @click.option(
     "--lag",
-    default=1,
+    default=2,
     show_default=True,
     type=int,
-    help="The number of blocks to lag behind the network, ensure all data are ready in PostgreSQL.",
+    help="The number of blocks to lag behind the network, lag for more blocks to ensure dump is ready",
 )
 @click.option(
     "-p",
@@ -144,6 +144,12 @@ from ethereumetl.streaming.utils import build_erc20_token_reader
     show_default=True,
     help="Used as dicskcache,token's attributes for EVM, rawtransaction for Bitcoin",
 )
+@click.option(
+    "--dryrun",
+    is_flag=True,
+    show_default=True,
+    help="Dryrun only",
+)
 def reorg(
     ctx,
     chain,
@@ -163,6 +169,7 @@ def reorg(
     target_db_workers,
     print_sql,
     cache_path,
+    dryrun,
 ):
     """Check and apply ChainReorg data from PostgreSQL(TimescaleDB) with json-rpc block hash diff"""
 
@@ -216,6 +223,13 @@ def reorg(
         enable_enrich=enable_enrich,
         token_cache_path=cache_path,
     )
+
+    if dryrun is True:
+        blknum, _ = reorg_adapter.get_current_block_number()
+        start_block, end_block = blknum - block_batch_size, blknum
+        _, diff = reorg_adapter.reconcile_blocks(start_block, end_block)
+        logging.info(f"Reorg dryrun check: {diff}")
+        return
 
     while True:
         blknum, _ = reorg_adapter.get_current_block_number()
