@@ -48,7 +48,7 @@ class EthBaseAdapter:
         block = self.web3.eth.get_block("latest")
         return (block.number, block.timestamp)
 
-    def export_blocks_and_transactions(self, start_block, end_block):
+    def export_blocks_and_transactions(self, start_block, end_block, blocks=None):
         exporter = InMemoryItemExporter(
             item_types=[EntityType.BLOCK, EntityType.TRANSACTION]
         )
@@ -61,13 +61,14 @@ class EthBaseAdapter:
             item_exporter=exporter,
             export_blocks=True,
             export_transactions=True,
+            blocks=blocks,
         )
         job.run()
         blocks = exporter.get_items(EntityType.BLOCK)
         transactions = exporter.get_items(EntityType.TRANSACTION)
         return blocks, transactions
 
-    def export_blocks(self, start_block, end_block) -> List[Dict]:
+    def export_blocks(self, start_block, end_block, blocks=None) -> List[Dict]:
         exporter = InMemoryItemExporter(item_types=[EntityType.BLOCK])
         job = ExportBlocksJob(
             start_block=start_block,
@@ -78,6 +79,7 @@ class EthBaseAdapter:
             item_exporter=exporter,
             export_blocks=True,
             export_transactions=False,
+            blocks=blocks,
         )
         job.run()
         return exporter.get_items(EntityType.BLOCK)
@@ -88,6 +90,7 @@ class EthBaseAdapter:
         end_block,
         topics: Optional[List[str]] = None,
         address: Optional[Union[str, List[str]]] = None,
+        blocks=None,
     ) -> List[Dict]:
         exporter = InMemoryItemExporter(item_types=[EntityType.LOG])
         job = ExportLogsJob(
@@ -99,6 +102,7 @@ class EthBaseAdapter:
             topics=topics,
             address=address,
             item_exporter=exporter,
+            blocks=blocks,
         )
         job.run()
         logs = exporter.get_items(EntityType.LOG)

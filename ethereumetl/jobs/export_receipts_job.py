@@ -104,7 +104,7 @@ class ExportReceiptsJob(BaseJob):
                 self._export_receipt(receipt)
                 continue
 
-            for (tx_blknum, txpos) in self.transaction_blocks.get(
+            for tx_blknum, txpos in self.transaction_blocks.get(
                 receipt.transaction_hash, []
             ):
                 if tx_blknum != receipt.block_number:

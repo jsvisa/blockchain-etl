@@ -5,6 +5,7 @@ from blockchainetl.logging_utils import logging_basic_config
 from blockchainetl.signal_utils import configure_signals
 from blockchainetl.cli.dump import dump
 from blockchainetl.cli.dump2 import dump2
+from blockchainetl.cli.reorg import reorg
 from blockchainetl.cli.load import load
 from blockchainetl.cli.alert import alert
 from blockchainetl.cli.alert2 import alert2
@@ -54,6 +55,7 @@ def cli(ctx):
 # Chain tasks
 cli.add_command(dump, "dump")
 cli.add_command(dump2, "dump2")
+cli.add_command(reorg, "reorg")
 cli.add_command(load, "load")
 cli.add_command(enrich, "enrich")
 cli.add_command(alert, "alert")

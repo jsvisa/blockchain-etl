@@ -65,10 +65,14 @@ class ExportTracesJob(BaseJob):
         is_geth_provider=True,
         retain_precompiled_calls=True,
         txhash_iterable: Optional[Dict[int, Dict[int, str]]] = None,
+        blocks=None,
     ):
-        validate_range(start_block, end_block)
-        self.start_block = start_block
-        self.end_block = end_block
+        if blocks is not None:
+            self.blocks = blocks
+        else:
+            validate_range(start_block, end_block)
+            self.blocks = range(start_block, end_block + 1)
+
         self.txhash_iterable = txhash_iterable or dict()
 
         self.web3 = web3
@@ -101,10 +105,7 @@ class ExportTracesJob(BaseJob):
         self.item_exporter.open()
 
     def _export(self):
-        self.batch_work_executor.execute(
-            range(self.start_block, self.end_block + 1),
-            self._export_batch,
-        )
+        self.batch_work_executor.execute(self.blocks, self._export_batch)
 
     def _export_batch(self, block_number_batch: List[int]):
         assert len(block_number_batch) > 0

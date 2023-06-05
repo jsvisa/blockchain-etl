@@ -21,10 +21,13 @@ class ExportLogsJob(BaseJob):
         item_exporter,
         topics: Optional[List[str]] = None,
         address: Optional[Union[str, List[str]]] = None,
+        blocks=None,
     ):
-        validate_range(start_block, end_block)
-        self.start_block = start_block
-        self.end_block = end_block
+        if blocks is not None:
+            self.blocks = blocks
+        else:
+            validate_range(start_block, end_block)
+            self.blocks = range(start_block, end_block + 1)
         self.topics = topics
         self.address = address
 
@@ -37,10 +40,7 @@ class ExportLogsJob(BaseJob):
         self.item_exporter.open()
 
     def _export(self):
-        self.batch_work_executor.execute(
-            range(self.start_block, self.end_block + 1),
-            self._export_batch,
-        )
+        self.batch_work_executor.execute(self.blocks, self._export_batch)
 
     def _export_batch(self, block_number_batch):
         from_block, to_block = block_number_batch[0], block_number_batch[-1]
