@@ -82,12 +82,16 @@ def validate_range(range_start_incl, range_end_incl):
 
 
 def rpc_response_batch_to_results(
-    response: Union[Dict, List[Dict]], jsonrpc=2, ignore_error=False, with_id=False
+    response: Union[Dict, List[Dict]], jsonrpc=2, ignore_error=False, with_id=False, requests: Optional[Union[List[Dict], Dict]]=None
 ) -> Generator[Union[Dict, Tuple[Dict, str]], None, None]:
     if isinstance(response, dict):
         response = [response]
+    if isinstance(requests, dict):
+        requests = [requests]
+
+
     for response_item in response:
-        yield rpc_response_to_result(response_item, jsonrpc, ignore_error, with_id)
+        yield rpc_response_to_result(response_item, jsonrpc, ignore_error, with_id, requests)
 
 
 def rpc_response_to_result(
@@ -95,6 +99,7 @@ def rpc_response_to_result(
     jsonrpc: int = 2,
     ignore_error: bool = False,
     with_id: bool = False,
+    requests: Optional[List[Dict]]=None,
 ) -> Union[Dict, Tuple[Dict, str]]:
     # bitcoin's jsonrpc currently is 1.0, don't have the `result` field
     if jsonrpc == 1:
@@ -102,8 +107,14 @@ def rpc_response_to_result(
     else:
         result = response.get("result")
 
+    id = response.get('id')
+
     if result is None:
-        error_message = "result is None in response {}.".format(response)
+        error_message = "result is None in response {}".format(response)
+
+        if id is not None and requests is not None:
+            error_message += " for request {}".format([r for r in requests if r.get('id') == id])
+
         error = response.get("error")
         is_retriable = False
         if error is None:
