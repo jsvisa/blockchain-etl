@@ -239,7 +239,7 @@ class ExportTracesJob(BaseJob):
             response = response[0]
 
         traces = []
-        for block_traces in rpc_response_batch_to_results(response):
+        for block_traces in rpc_response_batch_to_results(response, requests=trace_block_rpc):
             for tx_traces in block_traces:
                 for tx_trace in tx_traces["result"]:
                     trace = self.trace_mapper.json_dict_to_trace(tx_trace)

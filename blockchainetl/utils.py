@@ -89,7 +89,6 @@ def rpc_response_batch_to_results(
     if isinstance(requests, dict):
         requests = [requests]
 
-
     for response_item in response:
         yield rpc_response_to_result(response_item, jsonrpc, ignore_error, with_id, requests)
 

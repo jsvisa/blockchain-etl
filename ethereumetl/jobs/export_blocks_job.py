@@ -83,7 +83,7 @@ class ExportBlocksJob(BaseJob):
         if self.batch_size == 1:
             blocks_rpc = blocks_rpc[0]
         response = self.batch_web3_provider.make_batch_request(json.dumps(blocks_rpc))
-        results = rpc_response_batch_to_results(response)
+        results = rpc_response_batch_to_results(response, requests=blocks_rpc)
         blocks = [self.block_mapper.json_dict_to_block(result) for result in results]
 
         for block in blocks:
