@@ -82,8 +82,6 @@ setup(
         "ecdsa",
         "chainside-btcpy",
         "ply",
-        "timeout-decorator",
-        "google.cloud",
         "pyyaml-include",
         "cachetools",
         "millify==0.1.1",
@@ -94,7 +92,6 @@ setup(
         "prometheus_client",
         "rpq==2.2",
         "pypeln",
-        "kafka-python",
     ],
     entry_points={
         "console_scripts": [

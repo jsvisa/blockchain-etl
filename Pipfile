@@ -21,8 +21,6 @@ base58 = "*"
 ecdsa = "*"
 chainside-btcpy = "*"
 ply = "*"
-timeout-decorator = "*"
-"google.cloud" = "*"
 pyyaml-include = "*"
 cachetools = "*"
 millify = '==0.1.1'
