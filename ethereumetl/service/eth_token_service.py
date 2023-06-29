@@ -25,9 +25,10 @@ import logging
 from typing import Dict
 
 import diskcache as dc
+from eth_utils.address import to_checksum_address
 from web3 import Web3
 from web3.exceptions import BadFunctionCallOutput, ContractLogicError
-from web3.contract import Contract
+from web3.contract.contract import Contract
 from cachetools import cached, LRUCache
 from threading import Lock, get_native_id
 
@@ -52,7 +53,7 @@ class EthTokenService(TokenService):
             self._cache = dc.Cache(cache_path)
 
     def token_contract(self, token_address: str, abi: Dict = ERC20_ABI) -> Contract:
-        checksum_address = self._web3.toChecksumAddress(token_address)
+        checksum_address = to_checksum_address(token_address)
         return self._web3.eth.contract(address=checksum_address, abi=abi)
 
     @cached(cache=LRUCache(maxsize=1024000), lock=Lock())

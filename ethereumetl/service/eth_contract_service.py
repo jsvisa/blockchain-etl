@@ -24,6 +24,7 @@ from typing import Optional, List, Union
 import logging
 
 from hexbytes.main import HexBytes
+from eth_utils.address import to_checksum_address
 from eth_utils.abi import function_signature_to_4byte_selector
 from ethereum_dasm.evmdasm import EvmCode, Contract
 from ethereumetl.domain.contract import EthContract
@@ -103,7 +104,7 @@ class EthContractService:
     def get_contract(self, contract_address: str, block_id=None):
         assert self.web3 is not None
 
-        checksum_address = Web3.toChecksumAddress(contract_address)
+        checksum_address = to_checksum_address(contract_address)
         contract_code = self.web3.eth.get_code(checksum_address, block_id).hex()
         if contract_code == "0x":
             return None

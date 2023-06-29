@@ -1,6 +1,7 @@
 from web3 import Web3
 from typing import Union, Dict
 from .eth_token_service import EthTokenService
+from eth_utils.address import to_checksum_address
 
 
 class EthErc20Service(EthTokenService):
@@ -14,7 +15,7 @@ class EthErc20Service(EthTokenService):
         block: Union[int, str] = "latest",
     ) -> int:
         contract = self.token_contract(token)
-        owner = self._web3.toChecksumAddress(owner)
+        owner = to_checksum_address(owner)
         return contract.caller(block_identifier=block).balanceOf(owner)
 
     def eth_erc20_allowance(
@@ -25,8 +26,8 @@ class EthErc20Service(EthTokenService):
         block: Union[int, str] = "latest",
     ) -> int:
         contract = self.token_contract(token)
-        owner = self._web3.toChecksumAddress(owner)
-        spender = self._web3.toChecksumAddress(spender)
+        owner = to_checksum_address(owner)
+        spender = to_checksum_address(spender)
         return contract.caller(block_identifier=block).allowance(owner, spender)
 
     @classmethod
