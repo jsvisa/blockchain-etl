@@ -70,7 +70,7 @@ setup(
         "requests",
         "eth-hash",
         "pandas==1.4.0",
-        "web3",
+        "web3>=6",
         "pyyaml",
         "sqlalchemy<2.0",
         "jinja2",
