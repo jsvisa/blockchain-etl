@@ -19,7 +19,8 @@ from blockchainetl.cli.export_balance import export_balance
 
 # extra tasks
 from blockchainetl.cli.enrich import enrich
-from blockchainetl.cli.gp_autofix import gp_autofix
+
+# from blockchainetl.cli.gp_autofix import gp_autofix
 
 from bitcoinetl.cli.utdb import btc_utdb
 
@@ -31,11 +32,10 @@ from ethereumetl.cli.export_token_holders import export_token_holders
 from ethereumetl.cli.export_token_transfers import export_token_transfers
 from ethereumetl.cli.export_top_holders import export_top_holders
 
-from ethereumetl.cli.export_nft_tokenids import export_nft_tokenids
-
+# from ethereumetl.cli.export_nft_tokenids import export_nft_tokenids
 # from ethereumetl.cli.export_nft_orderbooks import export_nft_orderbooks
+# from ethereumetl.cli.export_uncle_blocks import export_uncle_blocks
 from ethereumetl.cli.export_contracts import export_contracts
-from ethereumetl.cli.export_uncle_blocks import export_uncle_blocks
 from ethereumetl.cli.get_block_range_for_date import get_block_range_for_date
 from ethereumetl.cli.export_txpool import export_txpool
 
@@ -68,7 +68,7 @@ cli.add_command(extract_balance, "extract-balance")
 cli.add_command(export_balance, "export-balance")
 
 # GreenPlum tasks
-cli.add_command(gp_autofix, "gp-autofix")
+# cli.add_command(gp_autofix, "gp-autofix")
 
 # Bitcoin tasks
 cli.add_command(btc_utdb, "btc.utdb")
@@ -83,8 +83,8 @@ cli.add_command(export_contracts, "eth.export-contract")
 cli.add_command(export_token_holders, "eth.export-token-holder")
 cli.add_command(export_token_transfers, "eth.export-token-transfer")
 cli.add_command(export_top_holders, "eth.export-top-holder")
-cli.add_command(export_nft_tokenids, "eth.export-nft-tokenid")
+# cli.add_command(export_nft_tokenids, "eth.export-nft-tokenid")
 # cli.add_command(export_nft_orderbooks, "eth.export-nft-orderbook")
-cli.add_command(export_uncle_blocks, "eth.export-uncle-block")
+# cli.add_command(export_uncle_blocks, "eth.export-uncle-block")
 cli.add_command(get_block_range_for_date, "eth.block-range-for-date")
 cli.add_command(export_txpool, "eth.export-txpool")
