@@ -54,7 +54,6 @@ class EthContractService:
         evm_code.disassemble(bytecode)
         basic_blocks = evm_code.basicblocks
 
-        # store from https://github.com/blockchain-etl/ethereum-etl/pull/282
         push4_instructions = set()
         for block in basic_blocks:
             for inst in block.instructions:
