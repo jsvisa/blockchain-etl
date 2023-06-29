@@ -86,7 +86,6 @@ setup(
         "google.cloud",
         "pyyaml-include",
         "cachetools",
-        "s3fs==2022.1.0",
         "millify==0.1.1",
         "diskcache==5.4.0",
         "loky==3.1.0",
