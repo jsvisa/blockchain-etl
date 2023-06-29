@@ -92,7 +92,7 @@ class ExportReceiptsJob(BaseJob):
             receipts_rpc = receipts_rpc[0]
         response = self.batch_web3_provider.make_batch_request(json.dumps(receipts_rpc))
         results = rpc_response_batch_to_results(
-            response, ignore_error=self.ignore_error
+            response, ignore_error=self.ignore_error, requests=receipts_rpc
         )
         receipts = [
             self.receipt_mapper.json_dict_to_receipt(result)
