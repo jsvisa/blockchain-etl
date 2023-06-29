@@ -2,7 +2,6 @@ from .composite_item_exporter import CompositeItemExporter
 from .console_item_exporter import ConsoleItemExporter
 from .file_item_exporter import FileItemExporter
 from .in_memory_item_exporter import InMemoryItemExporter
-from .kafka_item_exporter import KafkaItemExporter
 from .multi_item_exporter import MultiItemExporter
 from .pandas_item_exporter import PandasItemExporter
 from .postgres_item_exporter import PostgresItemExporter
@@ -16,7 +15,6 @@ __all__ = [
     "ConsoleItemExporter",
     "FileItemExporter",
     "InMemoryItemExporter",
-    "KafkaItemExporter",
     "MultiItemExporter",
     "PandasItemExporter",
     "PostgresItemExporter",
