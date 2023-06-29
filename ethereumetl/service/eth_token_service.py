@@ -149,6 +149,7 @@ class EthTokenService(TokenService):
                 ContractLogicError,
                 OverflowError,
                 ValueError,
+                UnicodeDecodeError,
             ),
             default_value=None,
             block_number=block_number,
@@ -159,22 +160,15 @@ class EthTokenService(TokenService):
         else:
             return result
 
-    def _bytes_to_string(self, b, ignore_errors=True):
-        if b is None:
-            return b
-
+    def _bytes_to_string(self, b: bytes):
         try:
             b = b.decode("utf-8")
-        except UnicodeDecodeError as e:
-            if ignore_errors:
-                logger.debug(
-                    "A UnicodeDecodeError exception occurred "
-                    "while trying to decode bytes to string",
-                    exc_info=True,
-                )
-                b = None
-            else:
-                raise e
+        except UnicodeDecodeError:
+            logger.warning(
+                "A UnicodeDecodeError exception occurred while trying to decode bytes to string",
+                exc_info=True,
+            )
+            b = None
 
         if self._function_call_result_transformer is not None:
             b = self._function_call_result_transformer(b)
