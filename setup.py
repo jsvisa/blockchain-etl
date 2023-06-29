@@ -96,7 +96,6 @@ setup(
         "rpq==2.2",
         "pypeln",
         "kafka-python",
-        "multicall @ git+https://github.com/jsvisa/multicall.py.git#egg=multicall",
     ],
     entry_points={
         "console_scripts": [

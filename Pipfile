@@ -35,7 +35,6 @@ prometheus_client = "*"
 rpq = "==2.2"
 pypeln = "*"
 kafka-python = "*"
-multicall = {git = "https://github.com/jsvisa/multicall.py.git"}
 
 [dev-packages]
 pre-commit = "*"
