@@ -27,7 +27,6 @@ from ethereumetl.cli.trace import eth_trace
 from ethereumetl.cli.export_tokens import export_tokens
 from ethereumetl.cli.extract_tokens import extract_tokens
 from ethereumetl.cli.extract_contracts import extract_contracts
-from ethereumetl.cli.extract_token_holders import extract_token_holders
 from ethereumetl.cli.export_token_holders import export_token_holders
 from ethereumetl.cli.export_token_transfers import export_token_transfers
 from ethereumetl.cli.export_top_holders import export_top_holders
@@ -80,7 +79,7 @@ cli.add_command(export_tokens, "eth.export-token")
 cli.add_command(extract_tokens, "eth.extract-token")
 cli.add_command(extract_contracts, "eth.extract-contract")
 cli.add_command(export_contracts, "eth.export-contract")
-cli.add_command(extract_token_holders, "eth.extract-token-holder")
+# cli.add_command(extract_token_holders, "eth.extract-token-holder")
 cli.add_command(export_token_holders, "eth.export-token-holder")
 cli.add_command(export_token_transfers, "eth.export-token-transfer")
 cli.add_command(export_top_holders, "eth.export-top-holder")

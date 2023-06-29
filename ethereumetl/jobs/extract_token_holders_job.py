@@ -4,7 +4,10 @@ import logging
 from subprocess import check_output
 import concurrent.futures
 
-import polars as pl
+try:
+    import polars as pl
+except Exception:
+    import pandas as pl
 import psycopg2
 
 from blockchainetl.streaming.postgres_utils import copy_into_csv_file
