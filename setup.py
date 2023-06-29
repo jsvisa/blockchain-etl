@@ -1,5 +1,4 @@
 import os
-import toml
 from setuptools import find_packages, setup
 
 
@@ -9,6 +8,8 @@ def read(fname):
 
 # copy from https://github.com/EthTx/ethtx/blob/master/setup.py
 def load_requirements(fname):
+    import toml
+
     """Load requirements from file."""
     try:
         with open(fname, "r") as fh:
@@ -39,7 +40,7 @@ long_description = read("README.md") if os.path.isfile("README.md") else ""
 setup(
     name="blockchain-etl",
     version="3.0.3",
-    author="Wenbiao Zheng",
+    author="Delweng Zheng",
     author_email="delweng@gmail.com",
     description="Tools for exporting Ethereum/Bitcoin blockchain data into CSV/PostgreSQL",
     long_description=long_description,
@@ -65,7 +66,41 @@ setup(
         "Programming Language :: Python :: 3.9",
     ],
     python_requires=">=3.6,<4",
-    install_requires=load_requirements("Pipfile"),
+    install_requires=[
+        "click==8.0.3",
+        "pymysql",
+        "requests",
+        "eth-hash",
+        "pandas==1.4.0",
+        "web3>5.0.0,<6.0",
+        "pyyaml",
+        "sqlalchemy<2.0",
+        "jinja2",
+        "psycopg2-binary",
+        "eth-abi",
+        "redis",
+        "ethereum-dasm",
+        "base58",
+        "pyetherchain",
+        "ecdsa",
+        "chainside-btcpy",
+        "ply",
+        "timeout-decorator",
+        "google.cloud",
+        "pyyaml-include",
+        "cachetools",
+        "s3fs==2022.1.0",
+        "millify==0.1.1",
+        "diskcache==5.4.0",
+        "loky==3.1.0",
+        "simplejson==3.17.6",
+        "jsonlines",
+        "prometheus_client",
+        "rpq==2.2",
+        "pypeln",
+        "kafka-python",
+        "multicall @ git+https://github.com/jsvisa/multicall.py.git#egg=multicall",
+    ],
     entry_points={
         "console_scripts": [
             "blockchain-etl=blockchainetl.cli:cli",
