@@ -27,13 +27,10 @@ timeout-decorator = "*"
 pyyaml-include = "*"
 cachetools = "*"
 s3fs = "==2022.1.0"
-polars = "==0.13.3"
 millify = '==0.1.1'
-pydantic = '==1.9.0'
 diskcache = '==5.4.0'
 loky = '==3.1.0'
 simplejson = '==3.17.6'
-toml = "*" # used by setup
 jsonlines = "*"
 prometheus_client = "*"
 rpq = "==2.2"
@@ -50,6 +47,7 @@ pytest = "*"
 supervisor = "*"
 superlance = "*"
 slacker = "*"
+toml = "*"
 
 [requires]
 python_version = "3.9"
