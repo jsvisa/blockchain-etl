@@ -39,10 +39,6 @@ black = "*"
 ipython = "*"
 jupyterlab = "*"
 pytest = "*"
-supervisor = "*"
-superlance = "*"
-slacker = "*"
-toml = "*"
 
 [requires]
 
