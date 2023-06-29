@@ -2,10 +2,6 @@ import os
 from setuptools import find_packages, setup
 
 
-def read(fname):
-    return open(os.path.join(os.path.dirname(__file__), fname)).read()
-
-
 # copy from https://github.com/EthTx/ethtx/blob/master/setup.py
 def load_requirements(fname):
     import toml
@@ -35,6 +31,10 @@ def load_requirements(fname):
     return packages
 
 
+def read(fname):
+    return open(os.path.join(os.path.dirname(__file__), fname)).read()
+
+
 long_description = read("README.md") if os.path.isfile("README.md") else ""
 
 setup(
@@ -60,10 +60,8 @@ setup(
         "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: 3.7",
-        "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
     ],
     python_requires=">=3.6,<4",
     install_requires=[
