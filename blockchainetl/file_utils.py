@@ -28,15 +28,20 @@ import sys
 import shutil
 import logging
 
-import s3fs
+try:
+    import s3fs
 
-s3 = s3fs.S3FileSystem()
+    s3 = s3fs.S3FileSystem()
+except ImportError:
+    s3 = None
 
 
 def smart_copy_file(src, dst):
     assert os.path.isdir(dst)
 
     if src.startswith("s3://"):
+        if s3 is None:
+            raise Exception("s3 is not available, please install s3fs before use")
         # FIXME: s3.get('aaa', '/tmp') returns None, but /tmp/aaa not exists
         s3.get(src, os.path.join(dst, os.path.basename(src)))
     else:
@@ -78,6 +83,8 @@ def get_file_handle(filename, mode="w", binary=False, create_parent_dirs=True):
         pathlib.Path(dirname).mkdir(parents=True, exist_ok=True)
     full_mode = mode + ("b" if binary else "")
     if is_s3:
+        if s3 is None:
+            raise Exception("s3 is not available, please install s3fs before use")
         fh = s3.open(filename, full_mode)
     elif is_file:
         fh = open(filename, full_mode)

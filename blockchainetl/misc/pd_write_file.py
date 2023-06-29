@@ -5,9 +5,6 @@ from io import StringIO
 from typing import List, Dict, Union, Optional
 import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import insert
-import s3fs
-
-s3 = s3fs.S3FileSystem()
 
 
 DEFAULT_FIELD_TERMINATED = "^"
@@ -55,6 +52,9 @@ def rewrite_file_with_types(file: str, types: Dict[str, Union[str, type]]):
     df.to_csv(bak, sep=DEFAULT_FIELD_TERMINATED, index=False)
 
     if file.startswith("s3://"):
+        import s3fs
+
+        s3 = s3fs.S3FileSystem()
         s3.rename(bak, file)
     else:
         os.rename(bak, file)

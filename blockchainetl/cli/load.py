@@ -5,7 +5,6 @@ import redis
 from threading import Thread
 from typing import Dict, Optional, Tuple, Set, List
 
-import s3fs
 import psycopg2 as psycopg
 from psycopg2.extensions import connection
 
@@ -54,8 +53,6 @@ class Loader:
         postgres_url: str,
         entity_types: List[str],
         enriched_types: Set[str],
-        need_rewrite_s3_path: bool,
-        rewrite_s3_path_as: str,
         provider_uri: str,
         provider_is_geth: bool,
         autofix: bool,
@@ -75,8 +72,6 @@ class Loader:
         self.postgres_url = postgres_url
         self.entity_types = entity_types
         self.enriched_types = enriched_types
-        self.need_rewrite_s3_path = need_rewrite_s3_path
-        self.rewrite_s3_path_as = rewrite_s3_path_as
         self.provider_uri = provider_uri
         self.provider_is_geth = provider_is_geth
         self.autofix = autofix
@@ -95,8 +90,6 @@ class Loader:
             self.minimum_blknums = {
                 e.split(":")[0]: int(e.split(":")[1]) for e in minimum_block.split(",")
             }
-
-        self.s3 = s3fs.S3FileSystem()
 
         ct = None
         if chain in Chain.ALL_BITCOIN_FORKS:
@@ -287,18 +280,13 @@ class Loader:
         blk = list(keyvals.keys())[0].decode()
         file = list(keyvals.values())[0].decode()
 
-        # README: back compatibility with old s3fs-fuse files
-        if file.startswith("/s3/") and self.need_rewrite_s3_path:
-            file = file.replace("/s3/", self.rewrite_s3_path_as, 1)
         return blk, file
 
     def _need_autofix(self) -> bool:
         return self.autofix is True and self.chain in Chain.ALL_ETHEREUM_FORKS
 
     def _file_exists(self, file: str) -> bool:
-        return (file.startswith("s3://") and self.s3.exists(file)) or (
-            not file.startswith("s3://") and os.path.exists(file)
-        )
+        return os.path.exists(file)
 
 
 @click.command(
@@ -417,12 +405,6 @@ class Loader:
     help="Ignore any errors in postgres copy process",
 )
 @click.option(
-    "--rewrite-s3-path-as",
-    default=None,
-    type=str,
-    help="Rewrite /s3 file path into s3://bucket",
-)
-@click.option(
     "--external-load",
     is_flag=True,
     show_default=True,
@@ -478,7 +460,6 @@ def load(
     provider_uri,
     ignore_file_missing_error,
     ignore_postgres_copy_error,
-    rewrite_s3_path_as,
     external_load,
     external_load_no_backup,
     external_load_types,
@@ -497,20 +478,12 @@ def load(
         else []
     )
 
-    need_rewrite_s3_path = False
-    if rewrite_s3_path_as is not None and rewrite_s3_path_as.startswith("s3://"):
-        need_rewrite_s3_path = True
-        if not rewrite_s3_path_as.endswith("/"):
-            rewrite_s3_path_as += "/"
-
     loader = Loader(
         chain,
         redis_url,
         gp_url,
         entity_types,
         enriched_types,
-        need_rewrite_s3_path,
-        rewrite_s3_path_as,
         provider_uri,
         provider_is_geth,
         autofix,
