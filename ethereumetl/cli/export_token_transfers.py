@@ -144,12 +144,10 @@ def export_token_transfers(
         pg_schema,
         item_type_to_insert_stmt_mapping={
             EntityType.TOKEN_TRANSFER: create_insert_statement_for_table(
-                TOKEN_TRANSFERS,
-                on_conflict_do_update=False,
+                TOKEN_TRANSFERS, on_conflict_do_update=False, schema=pg_schema
             ),
             EntityType.ERC721_TRANSFER: create_insert_statement_for_table(
-                ERC721_TRANSFERS,
-                on_conflict_do_update=False,
+                ERC721_TRANSFERS, on_conflict_do_update=False, schema=pg_schema
             ),
         },
         print_sql=print_sql,

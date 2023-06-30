@@ -223,6 +223,7 @@ def update(
                 on_conflict_do_update=True,
                 upsert_callback=upsert_token,
                 where_callback=where_token,
+                schema=chain,
             ),
         },
         print_sql=print_sql,

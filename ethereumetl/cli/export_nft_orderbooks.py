@@ -182,6 +182,7 @@ def export_nft_orderbooks(
                 EntityType.NFT_ORDERBOOK: create_insert_statement_for_table(
                     NFT_ORDERBOOKS,
                     on_conflict_do_update=False,
+                    schema=gp_schema,
                 )
             },
             print_sql=print_sql,

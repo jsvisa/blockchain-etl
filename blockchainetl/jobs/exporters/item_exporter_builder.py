@@ -114,34 +114,46 @@ def create_tsdb_exporter(
 
     if chain in Chain.ALL_ETHEREUM_FORKS:
         item_type_to_insert_stmt_mapping = {
-            EntityType.BLOCK: create_insert_statement_for_table(evm_ts.BLOCKS, False),
-            EntityType.TRANSACTION: create_insert_statement_for_table(
-                evm_ts.TRANSACTIONS, False
+            EntityType.BLOCK: create_insert_statement_for_table(
+                evm_ts.BLOCKS, False, schema=dbschema
             ),
-            EntityType.LOG: create_insert_statement_for_table(evm_ts.LOGS, False),
+            EntityType.TRANSACTION: create_insert_statement_for_table(
+                evm_ts.TRANSACTIONS, False, schema=dbschema
+            ),
+            EntityType.LOG: create_insert_statement_for_table(
+                evm_ts.LOGS, False, schema=dbschema
+            ),
             EntityType.TOKEN_TRANSFER: create_insert_statement_for_table(
-                evm_ts.TOKEN_TRANSFERS, False
+                evm_ts.TOKEN_TRANSFERS, False, schema=dbschema
             ),
             EntityType.ERC721_TRANSFER: create_insert_statement_for_table(
-                evm_ts.ERC721_TRANSFERS, False
+                evm_ts.ERC721_TRANSFERS, False, schema=dbschema
             ),
             EntityType.ERC1155_TRANSFER: create_insert_statement_for_table(
-                evm_ts.ERC1155_TRANSFERS, False
+                evm_ts.ERC1155_TRANSFERS, False, schema=dbschema
             ),
-            EntityType.TRACE: create_insert_statement_for_table(evm_ts.TRACES, False),
-            EntityType.TOKEN: create_insert_statement_for_table(evm_ts.TOKENS, False),
+            EntityType.TRACE: create_insert_statement_for_table(
+                evm_ts.TRACES, False, schema=dbschema
+            ),
+            EntityType.TOKEN: create_insert_statement_for_table(
+                evm_ts.TOKENS, False, schema=dbschema
+            ),
             EntityType.CONTRACT: create_insert_statement_for_table(
-                evm_ts.CONTRACTS, False
+                evm_ts.CONTRACTS, False, schema=dbschema
             ),
         }
 
     else:
         item_type_to_insert_stmt_mapping = {
-            EntityType.BLOCK: create_insert_statement_for_table(btc_ts.BLOCKS, False),
-            EntityType.TRANSACTION: create_insert_statement_for_table(
-                btc_ts.TRANSACTIONS, False
+            EntityType.BLOCK: create_insert_statement_for_table(
+                btc_ts.BLOCKS, False, schema=dbschema
             ),
-            EntityType.TRACE: create_insert_statement_for_table(btc_ts.TRACES, False),
+            EntityType.TRANSACTION: create_insert_statement_for_table(
+                btc_ts.TRANSACTIONS, False, schema=dbschema
+            ),
+            EntityType.TRACE: create_insert_statement_for_table(
+                btc_ts.TRACES, False, schema=dbschema
+            ),
         }
 
     return PostgresItemExporter(

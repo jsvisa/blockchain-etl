@@ -90,6 +90,7 @@ def export_txpool(
             EntityType.TXPOOL: create_insert_statement_for_table(
                 TXPOOLS,
                 on_conflict_do_update=False,
+                schema=chain,
             ),
         },
         print_sql=print_sql,
