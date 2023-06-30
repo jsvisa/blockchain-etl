@@ -27,7 +27,11 @@ from typing import Dict
 import diskcache as dc
 from eth_utils.address import to_checksum_address
 from web3 import Web3
-from web3.exceptions import BadFunctionCallOutput, ContractLogicError
+from web3.exceptions import (
+    BadFunctionCallOutput,
+    ContractLogicError,
+    ContractCustomError,
+)
 from web3.contract.contract import Contract
 from cachetools import cached, LRUCache
 from threading import Lock, get_native_id
@@ -138,8 +142,8 @@ class EthTokenService(TokenService):
         #   or was self-destructed
         #   OverflowError exception happens
         #   if the return type of the function doesn't match the expected type
-        # ContractLogicError exception happens
-        #   if the token doesn't implement a particular variable
+        # ContractLogicError/ContractCustomError exception happens
+        #   if the token doesn't implement a particular function
         #   such as this token doesn't has `decimals` variable
         # https://etherscan.io/token/0xf156d40a3d2c9e014484795e9b76d4b0cf0ce6d1
         result = call_contract_function(
@@ -147,6 +151,7 @@ class EthTokenService(TokenService):
             ignore_errors=(
                 BadFunctionCallOutput,
                 ContractLogicError,
+                ContractCustomError,
                 OverflowError,
                 ValueError,
                 UnicodeDecodeError,
