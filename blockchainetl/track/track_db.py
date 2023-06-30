@@ -21,6 +21,7 @@ class TrackDB:
                 "track": create_insert_statement_for_table(
                     TRACKS,
                     on_conflict_do_update=False,
+                    schema=track_schema,
                 ),
             },
             print_sql=False,

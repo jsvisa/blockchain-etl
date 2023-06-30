@@ -216,12 +216,14 @@ def export_balance(
     history_balances_stmt = postgres_utils.create_insert_statement_for_table(
         table=TOKEN_HISTORY_BALANCES,
         on_conflict_do_update=False,
+        schema=chain,
     )
     latest_balances_stmt = postgres_utils.create_insert_statement_for_table(
         table=TOKEN_LATEST_BALANCES,
         on_conflict_do_update=True,
         upsert_callback=upsert_latest_balances(),
         where_callback=postgres_utils.cond_upsert_on_blknum,
+        schema=chain,
     )
 
     item_exporter = PostgresItemExporter(

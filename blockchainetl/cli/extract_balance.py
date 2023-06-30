@@ -227,12 +227,14 @@ def extract_balance(
     history_balances_stmt = postgres_utils.create_insert_statement_for_table(
         table=hist_table,
         on_conflict_do_update=False,
+        schema=chain,
     )
     latest_balances_stmt = postgres_utils.create_insert_statement_for_table(
         table=last_table,
         on_conflict_do_update=True,
         upsert_callback=upsert_cb,
         where_callback=postgres_utils.cond_upsert_on_blknum,
+        schema=chain,
     )
 
     item_exporter = PostgresItemExporter(

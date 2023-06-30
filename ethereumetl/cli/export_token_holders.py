@@ -207,11 +207,13 @@ def export_token_holders(
         token_holder_insert_stmt = create_insert_statement_for_table(
             TOKEN_HOLDERS,
             on_conflict_do_update=False,
+            schema=pg_schema,
         )
 
         erc1155_holder_insert_stmt = create_insert_statement_for_table(
             ERC1155_HOLDERS,
             on_conflict_do_update=False,
+            schema=pg_schema,
         )
 
     else:
@@ -220,6 +222,7 @@ def export_token_holders(
             on_conflict_do_update=True,
             upsert_callback=upsert_token_holders,
             where_callback=build_cond_upsert_on_blknum("updated_blknum"),
+            schema=pg_schema,
         )
 
         erc1155_holder_insert_stmt = create_insert_statement_for_table(
@@ -227,6 +230,7 @@ def export_token_holders(
             on_conflict_do_update=True,
             upsert_callback=upsert_token_holders,
             where_callback=build_cond_upsert_on_blknum("updated_blknum"),
+            schema=pg_schema,
         )
 
     item_exporter = PostgresItemExporter(
