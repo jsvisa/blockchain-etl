@@ -3,6 +3,7 @@ import os
 import shutil
 import logging
 import random
+from copy import copy
 from time import time, sleep
 from typing import Optional, Protocol, Dict, Union, List, Tuple
 
@@ -29,7 +30,12 @@ def create_insert_statement_for_table(
     on_conflict_do_update: bool = True,
     upsert_callback=None,
     where_callback=None,
+    schema: Optional[str] = None,
 ) -> Insert:
+    # set schema if given
+    if schema is not None:
+        table = copy(table)
+        table.schema = schema
     insert_stmt: Insert = insert(table)
 
     primary_key_fields = [column.name for column in table.columns if column.primary_key]
