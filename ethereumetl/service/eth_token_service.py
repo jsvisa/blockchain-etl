@@ -22,16 +22,12 @@
 import os
 import logging
 
-from typing import Dict
+from typing import Dict, Tuple
 
 import diskcache as dc
 from eth_utils.address import to_checksum_address
 from web3 import Web3
-from web3.exceptions import (
-    BadFunctionCallOutput,
-    ContractLogicError,
-    ContractCustomError,
-)
+from web3.exceptions import BadFunctionCallOutput, ContractLogicError
 from web3.contract.contract import Contract
 from cachetools import cached, LRUCache
 from threading import Lock, get_native_id
@@ -151,7 +147,6 @@ class EthTokenService(TokenService):
             ignore_errors=(
                 BadFunctionCallOutput,
                 ContractLogicError,
-                ContractCustomError,
                 OverflowError,
                 ValueError,
                 UnicodeDecodeError,
@@ -186,7 +181,7 @@ class EthTokenService(TokenService):
 
 
 def call_contract_function(
-    func, ignore_errors, default_value=None, block_number="latest"
+    func, ignore_errors: Tuple, default_value=None, block_number="latest"
 ):
     try:
         result = func.call(block_identifier=block_number)
@@ -195,7 +190,7 @@ def call_contract_function(
         msg = "An exception({}) occurred in function '{}' of contract {}.".format(
             type(ex), func.fn_name, func.address
         )
-        if type(ex) in ignore_errors:
+        if isinstance(ex, ignore_errors):
             logger.debug(msg + " This exception can be safely ignored.", exc_info=True)
             return default_value
         else:
