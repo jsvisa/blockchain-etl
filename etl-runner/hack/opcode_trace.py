@@ -26,14 +26,6 @@ from blockchainetl.cli.utils import evm_chain_options, pick_random_provider_uri
 from blockchainetl.jobs.exporters.console_item_exporter import ConsoleItemExporter
 from blockchainetl.thread_local_proxy import ThreadLocalProxy
 from blockchainetl.streaming.streamer import Streamer
-
-# from blockchainetl.streaming.postgres_utils import create_insert_statement_for_table
-# from blockchainetl.jobs.exporters.postgres_item_exporter import PostgresItemExporter
-# from blockchainetl.jobs.exporters.converters import (
-#     RenameKeyItemConverter,
-#     ListToStringItemConverter,
-#     UnixTimestampItemConverter,
-# )
 from blockchainetl.utils import rpc_response_batch_to_results, time_elapsed
 
 from ethereumetl.providers.rpc import BatchHTTPProvider
