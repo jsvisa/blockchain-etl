@@ -2,4 +2,4 @@ timeout-decorator
 google.cloud
 kafka-python
 s3fs==2022.1.0
-multicall @ git+https://github.com/jsvisa/multicall.py.git#egg=multicall
+multicall-py
