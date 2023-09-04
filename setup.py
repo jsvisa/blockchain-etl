@@ -2,35 +2,6 @@ import os
 from setuptools import find_packages, setup
 
 
-# copy from https://github.com/EthTx/ethtx/blob/master/setup.py
-def load_requirements(fname):
-    import toml
-
-    """Load requirements from file."""
-    try:
-        with open(fname, "r") as fh:
-            pipfile = fh.read()
-        pipfile_toml = toml.loads(pipfile)
-    except FileNotFoundError:
-        return []
-
-    try:
-        required_packages = pipfile_toml["packages"].items()
-    except KeyError:
-        return []
-
-    packages = []
-    for pkg, ver in required_packages:
-        package = pkg
-        if isinstance(ver, str) and ver != "*":
-            package += ver
-        elif isinstance(ver, dict) and len(ver) == 1:
-            k, v = list(ver.items())[0]
-            package += f" @ {k}+{v}#egg={pkg}"
-        packages.append(package)
-    return packages
-
-
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
@@ -87,7 +58,6 @@ setup(
         "millify==0.1.1",
         "diskcache==5.4.0",
         "loky==3.1.0",
-        "simplejson==3.17.6",
         "jsonlines",
         "prometheus_client",
         "rpq==2.2",
