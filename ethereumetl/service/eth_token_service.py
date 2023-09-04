@@ -30,7 +30,7 @@ from web3 import Web3
 from web3.exceptions import BadFunctionCallOutput, ContractLogicError
 from web3.contract.contract import Contract
 from cachetools import cached, LRUCache
-from threading import Lock, get_native_id
+from threading import Lock
 
 from blockchainetl.service.token_service import TokenService
 from blockchainetl.enumeration.chain import Chain
@@ -56,7 +56,7 @@ class EthTokenService(TokenService):
         checksum_address = to_checksum_address(token_address)
         return self._web3.eth.contract(address=checksum_address, abi=abi)
 
-    @cached(cache=LRUCache(maxsize=1024000), lock=Lock())
+    @cached(cache=LRUCache(maxsize=102400), lock=Lock())
     def get_token(
         self,
         token_address: str,
@@ -68,9 +68,6 @@ class EthTokenService(TokenService):
             if token is not None:
                 return token
 
-        logger.info(
-            f"[PID: {get_native_id()}] token cache missed, read {token_address} from upstream"
-        )
         block_number = block_number or "latest"
 
         token = EthToken()
