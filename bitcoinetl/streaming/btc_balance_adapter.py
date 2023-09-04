@@ -10,7 +10,15 @@ from sqlalchemy.sql.expression import desc
 import pandas as pd
 from typing import Optional, Callable, Dict, List, NamedTuple
 import concurrent.futures
-from loky import get_reusable_executor
+
+try:
+    from loky import get_reusable_executor as get_executor  # type: ignore
+except Exception:
+    from concurrent.futures import ThreadPoolExecutor
+
+    get_executor = lambda **kwargs: ThreadPoolExecutor(
+        max_workers=kwargs.get("max_workers")
+    )
 
 
 from jinja2 import Template
@@ -265,7 +273,7 @@ class BtcBalanceAdapter:
         return pd.read_sql(sql, con=self.db_engine)
 
     def _cumsum_last_balances(self, df: pd.DataFrame) -> pd.DataFrame:
-        executor = get_reusable_executor(max_workers=self.max_workers, timeout=60)
+        executor = get_executor(max_workers=self.max_workers, timeout=60)
         futures = []
 
         enginer = sqlalchemy_engine_builder(self.target_db_url, self.target_dbschema)
