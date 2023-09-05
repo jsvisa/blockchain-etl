@@ -6,6 +6,7 @@ from typing import Set, Optional
 
 from web3 import Web3
 
+from blockchainetl.env import SUPPORT_BLOCK_RECEIPTS
 from blockchainetl.utils import time_elapsed
 from blockchainetl.jobs.exporters.console_item_exporter import ConsoleItemExporter
 from blockchainetl.jobs.exporters.in_memory_item_exporter import InMemoryItemExporter
@@ -15,6 +16,7 @@ from blockchainetl.thread_local_proxy import ThreadLocalProxy
 from ethereumetl.domain.receipt import EthReceipt
 from ethereumetl.providers.rpc import BatchHTTPProvider
 from ethereumetl.jobs.export_receipts_job import ExportReceiptsJob
+from ethereumetl.jobs.export_block_receipts_job import ExportBlockReceiptsJob
 from ethereumetl.jobs.export_traces_job import ExportTracesJob
 from ethereumetl.service.eth_token_service import EthTokenService
 from ethereumetl.streaming.enrich import (
@@ -106,7 +108,9 @@ class EthStreamerAdapter(EthBaseAdapter):
             elif self._should_export(EntityType.RECEIPT) or self._should_export(
                 EntityType.LOG
             ):
-                receipts, logs = self._export_receipts_and_logs(transactions)
+                receipts, logs = self._export_receipts_and_logs(
+                    start_block, end_block, transactions
+                )
 
         # 2. Enrich transactions with receipt
         enriched_transactions = (
@@ -247,8 +251,23 @@ class EthStreamerAdapter(EthBaseAdapter):
                 f"total-elapsed={time_elapsed(st0, st2)} export-elapsed={time_elapsed(st1, st2)}"
             )
 
-    def _export_receipts_and_logs(self, transactions):
+    def _export_receipts_and_logs(self, start_block, end_block, transactions):
         exporter = InMemoryItemExporter(item_types=[EntityType.RECEIPT, EntityType.LOG])
+        if SUPPORT_BLOCK_RECEIPTS is True:
+            job = ExportReceiptsJob(
+                start_block=start_block,
+                end_block=end_block,
+                batch_size=self.batch_size,
+                batch_web3_provider=self.batch_web3_provider,
+                max_workers=self.max_workers,
+                item_exporter=exporter,
+                export_receipts=self._should_export(EntityType.RECEIPT),
+                export_logs=self._should_export(EntityType.LOG),
+            )
+            job.run()
+            receipts = exporter.get_items(EntityType.RECEIPT)
+            logs = exporter.get_items(EntityType.LOG)
+            return receipts, logs
 
         transaction_blocks = defaultdict(list)
         if self.check_transaction_consistency:

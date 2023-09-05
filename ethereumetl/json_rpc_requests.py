@@ -147,6 +147,17 @@ def generate_get_receipt_json_rpc(
         )
 
 
+def generate_get_block_receipts_json_rpc(
+    block_numbers: List[int],
+) -> Generator[Dict[str, Union[str, int]], None, None]:
+    for block_number in block_numbers:
+        yield generate_json_rpc(
+            method="eth_getBlockReceipts",
+            params=[hex(block_number)],
+            request_id=block_number,
+        )
+
+
 def generate_get_code_json_rpc(
     contract_addresses: List[str],
     block: Union[int, str] = "latest",
