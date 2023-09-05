@@ -254,7 +254,7 @@ class EthStreamerAdapter(EthBaseAdapter):
     def _export_receipts_and_logs(self, start_block, end_block, transactions):
         exporter = InMemoryItemExporter(item_types=[EntityType.RECEIPT, EntityType.LOG])
         if SUPPORT_BLOCK_RECEIPTS is True:
-            job = ExportReceiptsJob(
+            job = ExportBlockReceiptsJob(
                 start_block=start_block,
                 end_block=end_block,
                 batch_size=self.batch_size,
