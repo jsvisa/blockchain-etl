@@ -142,14 +142,6 @@ from ethereumetl.streaming.eth_streamer_adapter import EthStreamerAdapter
     help="The pid file",
 )
 @click.option(
-    "--gp-url",
-    "--pg-url",
-    type=str,
-    envvar="BLOCKCHAIN_ETL_GP_URL",
-    required=True,
-    help="The GreenPlum connection url",
-)
-@click.option(
     "--token-cache-path",
     type=click.Path(exists=False, readable=True, dir_okay=True, writable=True),
     show_default=True,

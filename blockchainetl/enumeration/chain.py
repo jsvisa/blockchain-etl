@@ -29,6 +29,7 @@ class Chain:
     ETHF = "ethf"
     AURORA = "aurora"
     HARMONY = "harmony"
+    ZKSYNCERA = "zksyncera"
 
     SOLANA = "solana"
 
@@ -66,9 +67,10 @@ class Chain:
         AURORA,
         HARMONY,
         TRON,
+        ZKSYNCERA,
     ]
 
-    # Those chains we have already supported ETL via GreenPlum
+    # Those chains we have already supported ETL
     ALL_FOR_ETL = ALL_BITCOIN_FORKS + ALL_ETHEREUM_FORKS + [SOLANA]
 
     # Old API doesn't support verbosity for getblock which
@@ -97,6 +99,7 @@ class Chain:
         AURORA: "ETH",
         HARMONY: "ONE",
         TRON: "TRX",
+        ZKSYNCERA: "ETH",
     }
 
     @staticmethod

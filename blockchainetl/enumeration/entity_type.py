@@ -43,7 +43,6 @@ class EntityType:
         TOKEN,
         TOKEN_BALANCE,
     ]
-    ALL_FOR_INFURA = [BLOCK, TRANSACTION, LOG, TOKEN_TRANSFER]
 
     ALL_FOR_ETL = [
         BLOCK,
@@ -65,20 +64,9 @@ class EntityType:
         TRACE,
     ]
 
-    ALL_FOR_ALERT = [
-        BLOCK,
-        TRANSACTION,
-        RECEIPT,
-        LOG,
-        TOKEN_TRANSFER,
-        TRACE,
-    ]
+    ALL_FOR_ALERT = [BLOCK, TRANSACTION, RECEIPT, LOG, TOKEN_TRANSFER]
 
-    ALL_FOR_TRACK = [
-        TRANSACTION,
-        TOKEN_TRANSFER,
-        TRACE,
-    ]
+    ALL_FOR_TRACK = [TRANSACTION, TOKEN_TRANSFER, TRACE]
 
 
 class EntityTable:

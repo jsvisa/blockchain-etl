@@ -1,4 +1,5 @@
 import math
+import logging
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 from itertools import groupby
 from typing import Dict, List, Optional
@@ -109,9 +110,11 @@ class AlertExporter:
         if self._ruleid is not None:
             rule_results = [self._ruleset.execute_rule(self._ruleid, full_items)]
         else:
-            rule_results = self._ruleset.execute(
-                self._executor, full_items, self._max_workers
+            rule_results = list(
+                self._ruleset.execute(self._executor, full_items, self._max_workers)
             )
+
+        logging.info(f"rule results: {rule_results}")
 
         for rule_id, result in rule_results:
             if isinstance(result, ValueError):
