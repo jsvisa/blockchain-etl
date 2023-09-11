@@ -221,7 +221,7 @@ def dump2(
         schema,
         target_db_url,
         workers=target_db_workers,
-        pool_size=target_db_workers + 5,
+        pool_size=target_db_workers + 2,
         print_sql=print_sql,
     )
 
