@@ -65,20 +65,9 @@ class EntityType:
         TRACE,
     ]
 
-    ALL_FOR_ALERT = [
-        BLOCK,
-        TRANSACTION,
-        RECEIPT,
-        LOG,
-        TOKEN_TRANSFER,
-        TRACE,
-    ]
+    ALL_FOR_ALERT = [BLOCK, TRANSACTION, RECEIPT, LOG, TOKEN_TRANSFER]
 
-    ALL_FOR_TRACK = [
-        TRANSACTION,
-        TOKEN_TRANSFER,
-        TRACE,
-    ]
+    ALL_FOR_TRACK = [TRANSACTION, TOKEN_TRANSFER, TRACE]
 
 
 class EntityTable:
