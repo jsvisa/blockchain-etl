@@ -12,7 +12,6 @@ from blockchainetl.jobs.exporters.console_item_exporter import ConsoleItemExport
 from blockchainetl.jobs.exporters.in_memory_item_exporter import InMemoryItemExporter
 from blockchainetl.enumeration.entity_type import EntityType
 from blockchainetl.enumeration.chain import Chain
-from blockchainetl.thread_local_proxy import ThreadLocalProxy
 from ethereumetl.domain.receipt import EthReceipt
 from ethereumetl.providers.rpc import BatchHTTPProvider
 from ethereumetl.jobs.export_receipts_job import ExportReceiptsJob
@@ -59,6 +58,7 @@ class EthStreamerAdapter(EthBaseAdapter):
         ignore_receipt_missing_error=False,
         enable_enrich=False,
         token_cache_path: Optional[str] = None,
+        trace_provider: Optional[BatchHTTPProvider] = None,
     ):
         if EntityType.ERC721_TRANSFER in entity_types and erc20_token_reader is None:
             raise ValueError(
@@ -79,6 +79,7 @@ class EthStreamerAdapter(EthBaseAdapter):
             self.token_service = EthTokenService(
                 Web3(batch_web3_provider), cache_path=token_cache_path
             )
+        self.trace_provider = trace_provider
 
         EthBaseAdapter.__init__(
             self, chain, batch_web3_provider, item_exporter, batch_size, max_workers
@@ -334,8 +335,7 @@ class EthStreamerAdapter(EthBaseAdapter):
             start_block=start_block,
             end_block=end_block,
             batch_size=self.batch_size,
-            web3=ThreadLocalProxy(lambda: Web3(self.batch_web3_provider)),
-            batch_web3_provider=self.batch_web3_provider,
+            batch_web3_provider=self.trace_provider,
             max_workers=self.max_workers,
             item_exporter=exporter,
             include_genesis_traces=self.chain == Chain.ETHEREUM,

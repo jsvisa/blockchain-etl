@@ -1,7 +1,6 @@
 import os
 import click
 import pandas as pd
-from web3 import Web3
 
 from blockchainetl.thread_local_proxy import ThreadLocalProxy
 from blockchainetl.jobs.exporters.in_memory_item_exporter import InMemoryItemExporter
@@ -130,7 +129,6 @@ def eth_trace(
             start_block=block,
             end_block=block,
             batch_size=batch_size,
-            web3=ThreadLocalProxy(lambda: Web3(batch_web3_provider)),
             batch_web3_provider=batch_web3_provider,
             max_workers=max_workers,
             item_exporter=exporter,

@@ -221,15 +221,22 @@ def dump2(
         schema,
         target_db_url,
         workers=target_db_workers,
-        pool_size=target_db_workers + 5,
+        pool_size=target_db_workers + 2,
         print_sql=print_sql,
     )
 
     if chain in Chain.ALL_ETHEREUM_FORKS:
+        web3_provider = ThreadLocalProxy(
+            lambda: get_provider_from_uri(provider_uri, batch=True)
+        )
+        trace_provider = web3_provider
+        trace_provider_uri = kwargs.get("trace_provider_uri")
+        if trace_provider_uri is not None:
+            trace_provider = ThreadLocalProxy(
+                lambda: get_provider_from_uri(trace_provider_uri, batch=True)
+            )
         streamer_adapter = EthStreamerAdapter(
-            batch_web3_provider=ThreadLocalProxy(
-                lambda: get_provider_from_uri(provider_uri, batch=True)
-            ),
+            batch_web3_provider=web3_provider,
             item_exporter=item_exporter,
             chain=chain,
             batch_size=batch_size,
@@ -246,6 +253,7 @@ def dump2(
             ),
             enable_enrich=enable_enrich,
             token_cache_path=cache_path,
+            trace_provider=trace_provider,
         )
     elif chain in Chain.ALL_BITCOIN_FORKS:
         streamer_adapter = BtcStreamerAdapter(

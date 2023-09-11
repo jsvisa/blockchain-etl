@@ -24,7 +24,6 @@ import json
 import logging
 from collections import defaultdict
 
-from web3 import Web3
 from typing import List, Dict, Optional, Generator, Tuple
 from blockchainetl.executors.batch_work_executor import BatchWorkExecutor
 from blockchainetl.jobs.base_job import BaseJob
@@ -56,7 +55,6 @@ class ExportTracesJob(BaseJob):
         start_block: int,
         end_block: int,
         batch_size: int,
-        web3: Web3,
         batch_web3_provider,
         item_exporter,
         max_workers: int,
@@ -75,7 +73,6 @@ class ExportTracesJob(BaseJob):
 
         self.txhash_iterable = txhash_iterable or dict()
 
-        self.web3 = web3
         self.batch_web3_provider = batch_web3_provider
         self.is_geth_provider = is_geth_provider
         self.retain_precompiled_calls = retain_precompiled_calls
@@ -239,7 +236,9 @@ class ExportTracesJob(BaseJob):
             response = response[0]
 
         traces = []
-        for block_traces in rpc_response_batch_to_results(response, requests=trace_block_rpc):
+        for block_traces in rpc_response_batch_to_results(
+            response, requests=trace_block_rpc
+        ):
             for tx_traces in block_traces:
                 for tx_trace in tx_traces["result"]:
                     trace = self.trace_mapper.json_dict_to_trace(tx_trace)

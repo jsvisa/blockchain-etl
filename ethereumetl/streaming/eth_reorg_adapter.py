@@ -13,7 +13,6 @@ from blockchainetl.jobs.exporters.console_item_exporter import ConsoleItemExport
 from blockchainetl.jobs.exporters.in_memory_item_exporter import InMemoryItemExporter
 from blockchainetl.enumeration.entity_type import EntityType, EntityTable
 from blockchainetl.enumeration.chain import Chain
-from blockchainetl.thread_local_proxy import ThreadLocalProxy
 from ethereumetl.domain.receipt import EthReceipt
 from ethereumetl.providers.rpc import BatchHTTPProvider
 from ethereumetl.jobs.export_receipts_job import ExportReceiptsJob
@@ -93,7 +92,8 @@ class EthReorgAdapter(EthBaseAdapter):
     ):
         with self.target_engine.connect() as conn:
             result = conn.execute(
-                f"SELECT blknum, blkhash FROM {self.target_schema}.blocks WHERE block_timestamp >= %s AND blknum >= %s AND blknum <= %s",
+                f"SELECT blknum, blkhash FROM {self.target_schema}.blocks "
+                f"WHERE block_timestamp >= %s AND blknum >= %s AND blknum <= %s",
                 (start_timestamp, start_block, end_block),
             )
             rows = result.fetchall()
@@ -118,7 +118,8 @@ class EthReorgAdapter(EthBaseAdapter):
         with self.target_engine.begin() as conn:
             sql = text(
                 f"DELETE FROM {self.target_schema}.{et[entity_type]} "
-                f"WHERE block_timestamp >= '{start_timestamp}' AND blknum IN ({','.join(str(e) for e in blocks)})"
+                f"WHERE block_timestamp >= '{start_timestamp}' "
+                f"AND blknum IN ({','.join(str(e) for e in blocks)})"
             )
             result = conn.execute(sql)
             return result.rowcount
@@ -301,7 +302,8 @@ class EthReorgAdapter(EthBaseAdapter):
         self.item_exporter.export_items(all_items)
         st2 = time()
         logging.info(
-            f"Reorg blocks=({start_block}, {end_block}) diff={diff_blocks} dropped={dropped} added={len(all_items)} "
+            f"Reorg blocks=({start_block}, {end_block}) diff={diff_blocks} "
+            f"dropped={dropped} added={len(all_items)} "
             f"total-elapsed={time_elapsed(st0, st2)} export-elapsed={time_elapsed(st1, st2)}"
         )
 
@@ -373,7 +375,6 @@ class EthReorgAdapter(EthBaseAdapter):
             start_block=None,
             end_block=None,
             batch_size=self.batch_size,
-            web3=ThreadLocalProxy(lambda: Web3(self.batch_web3_provider)),
             batch_web3_provider=self.batch_web3_provider,
             max_workers=self.max_workers,
             item_exporter=exporter,
