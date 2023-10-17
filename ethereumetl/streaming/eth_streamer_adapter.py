@@ -97,28 +97,31 @@ class EthStreamerAdapter(EthBaseAdapter):
         # 1. Export receipts and logs
         receipts, logs = [], []
         if len(transactions) > 0:
-            # 1.0 ONLY log is exported, no transaction/receipt is required
+            # 1.0 ONLY log is exported, no receipt is required
             if (
-                self._should_export(EntityType.LOG)
-                and EntityType.TRANSACTION not in self.entity_types
+                True
+                and self._should_export(EntityType.LOG)
                 and EntityType.RECEIPT not in self.entity_types
             ):
                 logs = self.export_logs(start_block, end_block)
 
             # 1.1 receipt/log
-            elif self._should_export(EntityType.RECEIPT) or self._should_export(
-                EntityType.LOG
+            elif (
+                False
+                or self._should_export(EntityType.RECEIPT)
+                or self._should_export(EntityType.LOG)
             ):
                 receipts, logs = self._export_receipts_and_logs(
                     start_block, end_block, transactions
                 )
 
         # 2. Enrich transactions with receipt
-        enriched_transactions = (
-            enrich_transactions(transactions, receipts)
-            if EntityType.TRANSACTION in self.entity_types and len(transactions) > 0
-            else []
-        )
+        enriched_transactions = []
+        if EntityType.RECEIPT in self.entity_types:
+            enriched_transactions = enrich_transactions(transactions, receipts)
+        elif EntityType.TRANSACTION in self.entity_types:
+            enriched_transactions = transactions
+
         # 3. Enrich logs with block hash/timestamp
         enriched_logs = (
             enrich_logs(blocks, logs)
