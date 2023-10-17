@@ -3,6 +3,7 @@ from typing import Union
 
 from web3 import IPCProvider, HTTPProvider, Web3
 from web3.middleware.geth_poa import geth_poa_middleware
+from web3.middleware import validation
 
 from blockchainetl import env
 from blockchainetl.enumeration.chain import Chain
@@ -10,6 +11,9 @@ from ethereumetl.providers.ipc import BatchIPCProvider
 from ethereumetl.providers.rpc import BatchHTTPProvider
 
 DEFAULT_TIMEOUT = env.REQUEST_TIMEOUT_SECONDS
+
+# in our usecase, we don't need to validate the chain_id
+validation.METHODS_TO_VALIDATE = []
 
 
 def get_provider_from_uri(uri_string, timeout=DEFAULT_TIMEOUT, batch=False):
