@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from typing import Optional, List
+from typing import Optional, List, Dict
 
 
 class EthTrace(object):
@@ -45,3 +45,4 @@ class EthTrace(object):
         self.error: Optional[str] = None
         self.status: Optional[int] = None
         self.trace_id: Optional[str] = None
+        self.logs: Optional[List[Dict]] = None

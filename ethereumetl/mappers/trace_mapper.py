@@ -283,6 +283,7 @@ class EthTraceMapper(object):
 
         trace.subtraces = len(calls)
         trace.trace_address = trace_address
+        trace.logs = tx_trace.get("logs")
 
         for call_index, call_trace in enumerate(calls):
             result.extend(
@@ -320,4 +321,5 @@ class EthTraceMapper(object):
             "error": trace.error,
             "status": trace.status,
             "trace_id": trace.trace_id,
+            "logs": trace.logs,
         }
