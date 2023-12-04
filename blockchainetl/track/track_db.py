@@ -5,6 +5,7 @@ from typing import Dict, List
 from sqlalchemy import create_engine
 from blockchainetl.jobs.exporters import PostgresItemExporter
 from blockchainetl.streaming.postgres_utils import create_insert_statement_for_table
+from blockchainetl.jobs.exporters.converters import UnixTimestampItemConverter
 from ethereumetl.streaming.postgres_tables import TRACKS
 
 
@@ -24,6 +25,7 @@ class TrackDB:
                     schema=track_schema,
                 ),
             },
+            converters=(UnixTimestampItemConverter(),),
             print_sql=False,
             pool_size=10,
             pool_overflow=5,
