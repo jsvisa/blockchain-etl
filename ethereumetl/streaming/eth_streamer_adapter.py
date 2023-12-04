@@ -79,7 +79,7 @@ class EthStreamerAdapter(EthBaseAdapter):
             self.token_service = EthTokenService(
                 Web3(batch_web3_provider), cache_path=token_cache_path
             )
-        self.trace_provider = trace_provider
+        self.trace_provider = trace_provider or batch_web3_provider
 
         EthBaseAdapter.__init__(
             self, chain, batch_web3_provider, item_exporter, batch_size, max_workers
