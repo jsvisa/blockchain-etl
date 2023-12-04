@@ -43,6 +43,7 @@ SELECT
     block_timestamp             AS block_timestamp,
     blknum                      AS block_number,
     txhash                      AS hash,
+    txhash                      AS transaction_hash,
     nonce                       AS nonce,
     txpos                       AS transaction_index,
     from_address                AS from_address,
