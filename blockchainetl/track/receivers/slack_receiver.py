@@ -7,6 +7,8 @@ from datetime import datetime
 from . import BaseReceiver
 from ..track_explorer import TrackExplorer
 
+import logging
+
 
 class SlackReceiver(BaseReceiver):
     def __init__(
@@ -70,7 +72,9 @@ class SlackReceiver(BaseReceiver):
                 }
             ]
 
-            requests.post(self._url, json=payload)
+            r = requests.post(self._url, json=payload)
+            if r.status_code // 100 != 2:
+                logging.warning("post slack failed: {r.status_code} {r.text}")
 
     def format_body(self, row):
         value, symbol = row["out_value"], row["token_name"]
