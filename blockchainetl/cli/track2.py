@@ -190,6 +190,10 @@ def track2(
 ):
     """Track the flow of address money"""
     entity_types = parse_entity_types(entity_types)
+    if EntityType.TRANSACTION in entity_types and EntityType.TRACE in entity_types:
+        raise click.BadParameter(
+            "--entity-type should only contains transaction or trace"
+        )
 
     provider_uri = pick_random_provider_uri(provider_uri)
     logging.info("Using provider: " + provider_uri)
