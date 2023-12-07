@@ -16,6 +16,7 @@ from blockchainetl.thread_local_proxy import ThreadLocalProxy
 from ethereumetl.providers.auto import get_provider_from_uri
 from ethereumetl.service.eth_token_service import EthTokenService
 from ethereumetl.streaming.eth_alert_adapter import EthAlertAdapter
+from blockchainetl.service.simple_price_service import SimplePriceService
 from blockchainetl.service.price_service import PriceService
 
 
@@ -54,7 +55,7 @@ from blockchainetl.service.price_service import PriceService
 @click.option(
     "--price-url",
     type=str,
-    required=True,
+    default=None,
     help="The price connection url, used in price service",
 )
 @click.option(
@@ -193,7 +194,11 @@ def alert2(
     if chain in Chain.ALL_ETHEREUM_FORKS:
         web3 = Web3(HTTPProvider(provider_uri))
         token_service = EthTokenService(web3)
-    price_service = PriceService(price_url, price_apikey)
+
+    if price_url is not None:
+        price_service = PriceService(price_url, price_apikey)
+    else:
+        price_service = SimplePriceService()
 
     alert_exporter = AlertExporter(
         chain,

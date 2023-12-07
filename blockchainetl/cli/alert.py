@@ -16,6 +16,7 @@ from blockchainetl.cli.utils import (
 from blockchainetl.enumeration.chain import Chain
 from blockchainetl.enumeration.entity_type import EntityType, parse_entity_types
 from blockchainetl.jobs.exporters.alert_exporter import AlertExporter
+from blockchainetl.service.simple_price_service import SimplePriceService
 from blockchainetl.service.price_service import PriceService
 from blockchainetl.streaming.streamer import Streamer
 from blockchainetl.thread_local_proxy import ThreadLocalProxy
@@ -62,7 +63,7 @@ from ethereumetl.streaming.eth_streamer_adapter import EthStreamerAdapter
 @click.option(
     "--price-url",
     type=str,
-    required=True,
+    default=None,
     help="The price connection url, used in price service",
 )
 @click.option(
@@ -200,6 +201,11 @@ def alert(
         web3 = Web3(HTTPProvider(provider_uri))
         token_service = EthTokenService(web3, cache_path=token_cache_path)
 
+    if price_url is not None:
+        price_service = PriceService(price_url)
+    else:
+        price_service = SimplePriceService()
+
     alert_exporter = AlertExporter(
         chain,
         ruleset,
@@ -207,7 +213,7 @@ def alert(
         max_workers=max_workers,
         rule_id=rule_id,
         token_service=token_service,
-        price_service=PriceService(price_url),
+        price_service=price_service,
     )
 
     if chain in Chain.ALL_ETHEREUM_FORKS:
