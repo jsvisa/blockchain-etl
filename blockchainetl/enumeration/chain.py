@@ -30,6 +30,8 @@ class Chain:
     AURORA = "aurora"
     HARMONY = "harmony"
     ZKSYNCERA = "zksyncera"
+    BASE = "base"
+    LINEA = "linea"
 
     SOLANA = "solana"
 
@@ -68,6 +70,8 @@ class Chain:
         HARMONY,
         TRON,
         ZKSYNCERA,
+        BASE,
+        LINEA,
     ]
 
     # Those chains we have already supported ETL
