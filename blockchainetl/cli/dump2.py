@@ -4,7 +4,6 @@ import logging
 import click
 
 from blockchainetl.cli.utils import (
-    global_click_options,
     extract_cmdline_kwargs,
     pick_random_provider_uri,
     str2bool,
@@ -12,7 +11,6 @@ from blockchainetl.cli.utils import (
 from blockchainetl.utils import time_elapsed
 from blockchainetl.thread_local_proxy import ThreadLocalProxy
 from blockchainetl.streaming.streamer import Streamer
-from blockchainetl.enumeration.chain import Chain
 from blockchainetl.enumeration.entity_type import EntityType, parse_entity_types
 from blockchainetl.jobs.exporters.item_exporter_builder import create_tsdb_exporter
 
@@ -33,7 +31,21 @@ from ethereumetl.streaming.utils import build_erc20_token_reader
     )
 )
 @click.pass_context
-@global_click_options
+@click.option(
+    "-c",
+    "--chain",
+    required=True,
+    show_default=True,
+    help="The chain network to connect to.",
+)
+@click.option(
+    "--chain-type",
+    required=True,
+    show_default=True,
+    default="evm",
+    type=click.Choice(["evm", "utxo"]),
+    help="The chain belows to which network types",
+)
 @click.option(
     "-l",
     "--last-synced-block-file",
@@ -175,6 +187,7 @@ from ethereumetl.streaming.utils import build_erc20_token_reader
 def dump2(
     ctx,
     chain,
+    chain_type,
     last_synced_block_file,
     lag,
     provider_uri,
@@ -225,7 +238,7 @@ def dump2(
         print_sql=print_sql,
     )
 
-    if chain in Chain.ALL_ETHEREUM_FORKS:
+    if chain_type == "evm":
         web3_provider = ThreadLocalProxy(
             lambda: get_provider_from_uri(provider_uri, batch=True)
         )
@@ -255,7 +268,7 @@ def dump2(
             token_cache_path=cache_path,
             trace_provider=trace_provider,
         )
-    elif chain in Chain.ALL_BITCOIN_FORKS:
+    elif chain_type == "utxo":
         streamer_adapter = BtcStreamerAdapter(
             bitcoin_rpc=ThreadLocalProxy(
                 lambda: BitcoinRpc(provider_uri, cache_path=cache_path)
