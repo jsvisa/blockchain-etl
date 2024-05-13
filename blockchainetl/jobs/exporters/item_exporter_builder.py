@@ -5,7 +5,6 @@ from blockchainetl.enumeration.entity_type import EntityType
 from blockchainetl.jobs.exporters.converters import (
     IntToStringItemConverter,
     ListFieldItemConverter,
-    AppendTimestampItemConverter,
     AppendDateItemConverter,
     RenameKeyItemConverter,
     RenameFieldItemConverter,
@@ -205,11 +204,8 @@ def tsdb_exporter_converters():
                 "log_index": "logpos",
             }
         ),
-        AppendTimestampItemConverter(st_key="_st"),
-        AppendDateItemConverter(date_key="_st_day"),
         IntToStringItemConverter(keys=["token_id", "value"]),
         ListCountItemConverter("topics", new_field_prefix="n_"),
-        ListFieldItemConverter("topics", "topics_", fill=1, keep_original=True),
         ListToStringItemConverter(keys=["trace_address"], join=False),
         ListToStringItemConverter(keys=["func_sighashes"], join=False),
         ListToStringItemConverter(keys=["topics"], join=True),
