@@ -200,6 +200,11 @@ def alert2(
     else:
         price_service = SimplePriceService()
 
+    if label_service_url is not None and len(label_service_url) > 0:
+        label_service = LabelService(label_service_url, "addr_labels", chain)
+    else:
+        label_service = None
+
     alert_exporter = AlertExporter(
         chain,
         ruleset,
@@ -208,7 +213,7 @@ def alert2(
         max_workers=max_workers,
         token_service=token_service,
         price_service=price_service,
-        label_service=LabelService(label_service_url),
+        label_service=label_service,
     )
 
     streamer_adapter = EthAlertAdapter(
