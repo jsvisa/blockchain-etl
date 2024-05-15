@@ -4,7 +4,6 @@ import logging
 import click
 
 from blockchainetl.cli.utils import (
-    global_click_options,
     extract_cmdline_kwargs,
     pick_random_provider_uri,
     str2bool,
@@ -14,7 +13,7 @@ from blockchainetl.thread_local_proxy import ThreadLocalProxy
 from blockchainetl.streaming.streamer import Streamer
 from blockchainetl.enumeration.chain import Chain
 from blockchainetl.enumeration.entity_type import EntityType, parse_entity_types
-from blockchainetl.jobs.exporters.item_exporter_builder import create_postgres_exporter
+from blockchainetl.jobs.exporters.item_exporter_builder import create_tsdb_exporter
 from blockchainetl.jobs.exporters.file_item_exporter import FileItemExporter
 
 from bitcoinetl.rpc.bitcoin_rpc import BitcoinRpc
@@ -35,7 +34,21 @@ from ethereumetl.streaming.utils import build_erc20_token_reader
     )
 )
 @click.pass_context
-@global_click_options
+@click.option(
+    "-c",
+    "--chain",
+    required=True,
+    show_default=True,
+    help="The chain network to connect to.",
+)
+@click.option(
+    "--chain-type",
+    required=True,
+    show_default=True,
+    default="evm",
+    type=click.Choice(["evm", "utxo"]),
+    help="The chain belows to which network types",
+)
 @click.option(
     "-l",
     "--last-synced-block-file",
@@ -200,6 +213,7 @@ from ethereumetl.streaming.utils import build_erc20_token_reader
 def dump(
     ctx,
     chain,
+    chain_type,
     last_synced_block_file,
     lag,
     provider_uri,
@@ -245,16 +259,14 @@ def dump(
             schema = chain
         if pending_mode is True:
             schema += "_pending"
-        item_exporter = create_postgres_exporter(
-            schema, target_db_url, print_sql=print_sql
-        )
+        item_exporter = create_tsdb_exporter(schema, target_db_url, print_sql=print_sql)
     else:
         redis_notify = RedisStreamService(redis_url, entity_types).create_notify(
             chain, redis_stream_prefix, redis_result_prefix
         )
         item_exporter = FileItemExporter(chain, output, redis_notify)
 
-    if chain in Chain.ALL_ETHEREUM_FORKS:
+    if chain_type == "evm":
         web3_provider = ThreadLocalProxy(
             lambda: get_provider_from_uri(provider_uri, batch=True)
         )
@@ -284,7 +296,7 @@ def dump(
             token_cache_path=token_cache_path,
             trace_provider=trace_provider,
         )
-    elif chain in Chain.ALL_BITCOIN_FORKS:
+    elif chain_type == "utxo":
         streamer_adapter = BtcStreamerAdapter(
             bitcoin_rpc=ThreadLocalProxy(lambda: BitcoinRpc(provider_uri)),
             item_exporter=item_exporter,
