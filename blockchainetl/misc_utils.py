@@ -31,12 +31,16 @@ from blockchainetl.file_utils import get_file_handle, smart_open
 
 
 @contextlib.contextmanager
-def get_item_iterable(input_file):
+def get_item_iterable(input_file, delimiter: str = ",", quotechar: str | None = '"'):
     fh = get_file_handle(input_file, "r")
 
     if input_file.endswith(".csv"):
         set_max_field_size_limit()
-        reader = csv.DictReader(fh)
+        reader = csv.DictReader(
+            fh,
+            delimiter=delimiter,
+            quotechar=quotechar,
+        )
     else:
         reader = (json.loads(line) for line in fh)
 
@@ -47,7 +51,7 @@ def get_item_iterable(input_file):
 
 
 @contextlib.contextmanager
-def get_item_sink(output_file):
+def get_item_sink(output_file, delimiter: str = ",", quotechar: str | None = '"'):
     fh = get_file_handle(output_file, "w")
 
     if output_file.endswith(".csv"):
@@ -59,7 +63,13 @@ def get_item_sink(output_file):
             nonlocal writer
             if writer is None:
                 fields = list(six.iterkeys(item))
-                writer = csv.DictWriter(fh, fieldnames=fields, extrasaction="ignore")
+                writer = csv.DictWriter(
+                    fh,
+                    fieldnames=fields,
+                    extrasaction="ignore",
+                    delimiter=delimiter,
+                    quotechar=quotechar,
+                )
                 writer.writeheader()
             writer.writerow(item)
 
