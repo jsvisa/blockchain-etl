@@ -271,7 +271,9 @@ def dump(
         )
         if chain_type == "evm":
             converters = evm_exporter_converters()
-            converters.append(DropFieldItemConverter(["type", "item_timestamp"]))
+            converters.append(
+                DropFieldItemConverter(["type", "block_hash", "item_timestamp"])
+            )
         else:
             converters = None
         item_exporter = CSVItemExporter(output, entity_types, converters, redis_notify)
