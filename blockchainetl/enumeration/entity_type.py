@@ -50,9 +50,6 @@ class EntityType:
         RECEIPT,
         LOG,
         TOKEN_TRANSFER,
-        ERC721_TRANSFER,
-        ERC1155_TRANSFER,
-        TRACE,
     ]
 
     ALL_FOR_EASY_ETL = [
