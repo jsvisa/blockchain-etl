@@ -13,8 +13,13 @@ from blockchainetl.thread_local_proxy import ThreadLocalProxy
 from blockchainetl.streaming.streamer import Streamer
 from blockchainetl.enumeration.chain import Chain
 from blockchainetl.enumeration.entity_type import EntityType, parse_entity_types
-from blockchainetl.jobs.exporters.item_exporter_builder import create_tsdb_exporter
+from blockchainetl.jobs.exporters.item_exporter_builder import (
+    create_tsdb_exporter,
+    evm_exporter_converters,
+)
 from blockchainetl.jobs.exporters.file_item_exporter import FileItemExporter
+from blockchainetl.jobs.exporters.csv_item_exporter import CSVItemExporter
+from blockchainetl.jobs.exporters.converters import DropFieldItemConverter
 
 from bitcoinetl.rpc.bitcoin_rpc import BitcoinRpc
 from bitcoinetl.streaming.btc_streamer_adapter import BtcStreamerAdapter
@@ -264,7 +269,12 @@ def dump(
         redis_notify = RedisStreamService(redis_url, entity_types).create_notify(
             chain, redis_stream_prefix, redis_result_prefix
         )
-        item_exporter = FileItemExporter(chain, output, redis_notify)
+        if chain_type == "evm":
+            converters = evm_exporter_converters()
+            converters.append(DropFieldItemConverter(["type", "item_timestamp"]))
+        else:
+            converters = None
+        item_exporter = CSVItemExporter(output, entity_types, converters, redis_notify)
 
     if chain_type == "evm":
         web3_provider = ThreadLocalProxy(

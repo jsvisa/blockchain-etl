@@ -159,7 +159,7 @@ def create_tsdb_exporter(
         connection_url,
         dbschema,
         item_type_to_insert_stmt_mapping=item_type_to_insert_stmt_mapping,
-        converters=tsdb_exporter_converters(),
+        converters=evm_exporter_converters(),
         print_sql=print_sql,
         workers=workers,
         pool_size=pool_size,
@@ -167,7 +167,7 @@ def create_tsdb_exporter(
     )
 
 
-def tsdb_exporter_converters():
+def evm_exporter_converters():
     return [
         UnixTimestampItemConverter(),
         RenameFieldItemConverter(
