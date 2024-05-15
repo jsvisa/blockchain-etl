@@ -1,11 +1,10 @@
-version: '2.1'
-
 networks:
   ethereum-net:
     driver: bridge
 
 volumes:
   geth_data: {}
+  tsdb_data: {}
 
 services:
   geth:
@@ -48,6 +47,26 @@ services:
       - '8546:8546'
       - '6080:6080'
       - '6081:6081'
+    networks:
+      - ethereum-net
+    labels:
+      org.label-schema.group: 'ethereum-geth'
+
+  tsdb:
+    image: timescale/timescaledb:2.10.0-pg15
+    container_name: tsdb
+    command:
+      - 'postgres'
+      - '-cshared_preload_libraries=pg_stat_statements'
+      - '-cshared_preload_libraries=timescaledb'
+      - '-cmax_connections=100'
+    volumes:
+      - tsdb_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-root}
+    restart: unless-stopped
+    ports:
+      - '4432:5432'
     networks:
       - ethereum-net
     labels:
