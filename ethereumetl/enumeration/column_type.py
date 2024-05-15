@@ -5,8 +5,7 @@ import pandas as pd
 from blockchainetl.enumeration.entity_type import EntityType
 
 BLOCK = [
-    "_st",
-    "_st_day",
+    "block_timestamp",
     "blknum",
     "blkhash",
     "parent_hash",
@@ -28,11 +27,11 @@ BLOCK = [
     "uncle_count",
     "uncle0_hash",
     "uncle1_hash",
+    "item_id",
 ]
 
 TRANSACTION = [
-    "_st",
-    "_st_day",
+    "block_timestamp",
     "blknum",
     "txhash",
     "txpos",
@@ -53,11 +52,11 @@ TRANSACTION = [
     "receipt_status",
     "receipt_effective_gas_price",
     "receipt_log_count",
+    "item_id",
 ]
 
 TRACE = [
-    "_st",
-    "_st_day",
+    "block_timestamp",
     "blknum",
     "txhash",
     "txpos",
@@ -75,25 +74,23 @@ TRACE = [
     "trace_address",
     "error",
     "status",
+    "item_id",
 ]
 
 LOG = [
-    "_st",
-    "_st_day",
+    "block_timestamp",
     "blknum",
     "txhash",
     "txpos",
     "logpos",
     "address",
-    "data",
-    "topics",
     "n_topics",
-    "topics_0",
+    "topics",
+    "data",
+    "item_id",
 ]
 
 CONTRACT = [
-    "_st",
-    "_st_day",
     "blknum",
     "txhash",
     "txpos",
@@ -106,11 +103,11 @@ CONTRACT = [
     "func_sighashes",
     "is_erc20",
     "is_erc721",
+    "item_id",
 ]
 
 TOKEN = [
-    "_st",
-    "_st_day",
+    "block_timestamp",
     "blknum",
     "txhash",
     "txpos",
@@ -122,27 +119,27 @@ TOKEN = [
     "total_supply",
     "is_erc20",
     "is_erc721",
+    "item_id",
 ]
 
 TOKEN_TRANSFER = [
-    "_st",
-    "_st_day",
+    "block_timestamp",
     "blknum",
     "txhash",
     "txpos",
     "logpos",
     "token_address",
-    "name",
     "from_address",
     "to_address",
     "value",
+    "name",
     "symbol",
     "decimals",
+    "item_id",
 ]
 
 ERC721_TRANSFER = [
-    "_st",
-    "_st_day",
+    "block_timestamp",
     "blknum",
     "txhash",
     "txpos",
@@ -152,11 +149,11 @@ ERC721_TRANSFER = [
     "from_address",
     "to_address",
     "id",
+    "item_id",
 ]
 
 ERC1155_TRANSFER = [
-    "_st",
-    "_st_day",
+    "block_timestamp",
     "blknum",
     "txhash",
     "txpos",
@@ -171,11 +168,10 @@ ERC1155_TRANSFER = [
     "id_pos",
     "id_cnt",
     "xfer_type",
+    "item_id",
 ]
 
 TOKEN_BALANCE = [
-    "_st",
-    "_st_day",
     "blknum",
     "address",
     "token_address",
@@ -189,13 +185,11 @@ TOKEN_BALANCE = [
 ]
 
 TOKEN_HOLDER = [
-    "id",
-    "_st",
-    "_st_day",
     "blknum",
     "txhash",
     "address",
     "token_address",
+    "item_id",
 ]
 
 
