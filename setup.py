@@ -53,7 +53,7 @@ setup(
         "ecdsa",
         "chainside-btcpy",
         "ply",
-        "pyyaml-include",
+        "pyyaml-include==1.4.1",
         "cachetools",
         "millify==0.1.1",
         "diskcache==5.4.0",
