@@ -41,7 +41,9 @@ class ExportUncleBlocksJob(BaseJob):
         if self.batch_size == 1:
             blocks_rpc = blocks_rpc[0]
         response = self.batch_web3_provider.make_batch_request(json.dumps(blocks_rpc))
-        results = rpc_response_batch_to_results(response, with_id=True, requests=blocks_rpc)
+        results = rpc_response_batch_to_results(
+            response, with_id=True, requests=blocks_rpc
+        )
         for result, req_id in results:
             block = self.block_mapper.json_dict_to_block(result)
             block.hermit_blknum = int(req_id.split("-")[0])

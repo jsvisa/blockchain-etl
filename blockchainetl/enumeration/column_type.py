@@ -35,9 +35,11 @@ class ColumnType:
         # set _st_day
         # don't set the null timestamp
         df["_st_day"] = df._st.apply(
-            lambda x: datetime.utcfromtimestamp(x).strftime("%Y-%m-%d")
-            if x is not None
-            else None
+            lambda x: (
+                datetime.utcfromtimestamp(x).strftime("%Y-%m-%d")
+                if x is not None
+                else None
+            )
         )
 
         return df

@@ -46,7 +46,8 @@ class GraphOperations(object):
         max_not_monotonic_points indicates the maximum difference of the x coordinate for any two points
         (x1, y1) and (x2, y2) such that x2 > x1 and y2 <= y1.
         For strictly increasing y max_not_monotonic_points should be 0.
-        If prefetch_size is greater than 0 graph must implement get_points(xs) method."""
+        If prefetch_size is greater than 0 graph must implement get_points(xs) method.
+        """
 
         self._graph = graph
         self._cached_points = []
@@ -55,7 +56,8 @@ class GraphOperations(object):
 
     def get_bounds_for_y_coordinate(self, y: int) -> Tuple[int, int]:
         """given the y coordinate, outputs a pair of x coordinates for closest points that bound the y coordinate.
-        Left and right bounds are equal in case given y is equal to one of the points y coordinate"""
+        Left and right bounds are equal in case given y is equal to one of the points y coordinate
+        """
         initial_bounds = find_best_bounds(y, self._cached_points)
         if initial_bounds is None:
             initial_bounds = self._get_first_point(), self._get_last_point()

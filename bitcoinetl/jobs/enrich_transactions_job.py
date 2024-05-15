@@ -31,6 +31,7 @@ from bitcoinetl.domain.transaction_input import BtcTransactionInput
 from bitcoinetl.mappers.transaction_mapper import BtcTransactionMapper
 from bitcoinetl.service.btc_service import BtcService
 
+
 # Add required_signatures, type, addresses, and value to transaction inputs
 class EnrichTransactionsJob(BaseJob):
     def __init__(

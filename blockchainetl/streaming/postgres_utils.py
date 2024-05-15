@@ -89,11 +89,9 @@ def build_cond_upsert_on_blknum(block_column="blknum"):
 
 
 class ColumnType(Protocol):
-    def astype(self, entity_type: str) -> Dict[str, Union[str, type]]:
-        ...
+    def astype(self, entity_type: str) -> Dict[str, Union[str, type]]: ...
 
-    def __getitem__(self, key: str) -> List[str]:
-        ...
+    def __getitem__(self, key: str) -> List[str]: ...
 
 
 def psycopg_connect(pg_url: str, retry=10):

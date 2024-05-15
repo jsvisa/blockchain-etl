@@ -128,9 +128,11 @@ def type_resolver_from_dict(dictionary):
     :rtype: function
     """
     type_map = {
-        key: value
-        if ast.DataType.is_definition(value)
-        else ast.DataType.from_value(value)
+        key: (
+            value
+            if ast.DataType.is_definition(value)
+            else ast.DataType.from_value(value)
+        )
         for key, value in dictionary.items()
     }
     return functools.partial(_type_resolver, type_map)

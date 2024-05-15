@@ -8,6 +8,7 @@ logger = logging.getLogger("ipfs")
 IPFS_TIMEOUT = 5  # Timeout in second
 IPFS_NUM_ATTEMPTS = 3
 
+
 # A simple client to fetch content from IPFS gateways.
 class IpfsClient:
     def __init__(self, gatewayUrls: List[str]):

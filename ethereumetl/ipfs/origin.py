@@ -10,6 +10,7 @@ logger = logging.getLogger("origin")
 IPFS_PRIMARY_GATEWAY_URL = "https://ipfs-prod.ogn.app/ipfs"
 IPFS_SECONDARY_GATEWAY_URL = "https://gateway.ipfs.io/ipfs"
 
+
 # Returns an IPFS client that can be used to fetch Origin Protocol's data.
 def get_origin_ipfs_client():
     return IpfsClient([IPFS_PRIMARY_GATEWAY_URL, IPFS_SECONDARY_GATEWAY_URL])
