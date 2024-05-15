@@ -21,7 +21,7 @@ services:
       org.label-schema.group: 'ethereum-geth'
 
   postgres:
-    image: postgres:12.10-alpine
+    image: postgres:15-alpine
     container_name: postgres
     command: ['postgres', '-cshared_preload_libraries=pg_stat_statements']
     volumes:
