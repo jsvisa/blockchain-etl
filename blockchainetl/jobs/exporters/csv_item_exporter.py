@@ -1,6 +1,6 @@
 import os
 from typing import List, Dict, Set
-from datetime import datetime
+from datetime import datetime, timezone
 
 from blockchainetl.misc_utils import get_item_sink
 from .converters.composite_item_converter import CompositeItemConverter
@@ -33,18 +33,16 @@ class CSVItemExporter:
             if item_group is None or len(item_group) == 0:
                 continue
 
+            # use the time of the first row of this batch
             item0 = item_group[0]
             blknum = item0.get("number", item0.get("block_number"))
             ts = item0.get("timestamp", item0.get("block_timestamp"))
 
-            base_dir = None
-            if self.output_dir is not None:
-                # use the time of the first row of this batch
-                st_day = datetime.utcfromtimestamp(ts).strftime("%Y-%m-%d")
-                base_dir = os.path.join(self.output_dir, st_day)
-                if not base_dir.startswith("s3://"):
-                    os.makedirs(base_dir, exist_ok=True)
-            output = os.path.join(base_dir, entity, f"{blknum}.csv")
+            st_day = datetime.fromtimestamp(ts, tz=timezone.utc).strftime("%Y-%m-%d")
+            base_dir = os.path.join(self.output_dir, st_day)
+            if not base_dir.startswith("s3://"):
+                os.makedirs(base_dir, exist_ok=True)
+            output = os.path.join(base_dir, f"{entity}/{blknum}.csv")
 
             converted_items = self.convert_items(item_group)
             with get_item_sink(output, delimiter="^", quotechar="'") as sink:

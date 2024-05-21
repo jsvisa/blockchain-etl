@@ -11,13 +11,11 @@ from blockchainetl.cli.utils import (
 from blockchainetl.utils import time_elapsed
 from blockchainetl.thread_local_proxy import ThreadLocalProxy
 from blockchainetl.streaming.streamer import Streamer
-from blockchainetl.enumeration.chain import Chain
 from blockchainetl.enumeration.entity_type import EntityType, parse_entity_types
 from blockchainetl.jobs.exporters.item_exporter_builder import (
     create_tsdb_exporter,
     evm_exporter_converters,
 )
-from blockchainetl.jobs.exporters.file_item_exporter import FileItemExporter
 from blockchainetl.jobs.exporters.csv_item_exporter import CSVItemExporter
 from blockchainetl.jobs.exporters.converters import DropFieldItemConverter
 
@@ -264,7 +262,9 @@ def dump(
             schema = chain
         if pending_mode is True:
             schema += "_pending"
-        item_exporter = create_tsdb_exporter(schema, target_db_url, print_sql=print_sql)
+        item_exporter = create_tsdb_exporter(
+            chain, schema, target_db_url, print_sql=print_sql
+        )
     else:
         redis_notify = RedisStreamService(redis_url, entity_types).create_notify(
             chain, redis_stream_prefix, redis_result_prefix
