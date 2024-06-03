@@ -17,6 +17,8 @@ from blockchainetl.enumeration.entity_type import EntityType
 from ethereumetl.service.token_transfer_extractor import (
     EthTokenTransferExtractor,
     TRANSFER_EVENT_TOPIC,
+    DEPOSIT_EVENT_TOPIC,
+    WITHDRAWAL_EVENT_TOPIC,
 )
 
 
@@ -31,7 +33,7 @@ class ExportTokenTransfersJob(BaseJob):
         item_exporter,
         max_workers,
         tokens: Optional[List[str]] = None,
-        item_converter: Callable[..., Dict] = None,
+        item_converter: Optional[Callable[..., Dict]] = None,
     ):
         validate_range(start_block, end_block)
         self.start_block = start_block
@@ -115,7 +117,7 @@ class ExportTokenTransfersJob(BaseJob):
         items = item_exporter.get_items(EntityType.BLOCK)
         return {item["number"]: item["timestamp"] for item in items}
 
-    def _get_block_logs(self, start_block, end_block) -> Dict[int, int]:
+    def _get_block_logs(self, start_block, end_block) -> List[Dict]:
         item_exporter = InMemoryItemExporter(item_types=[EntityType.LOG])
         job = ExportLogsJob(
             start_block,
@@ -124,7 +126,7 @@ class ExportTokenTransfersJob(BaseJob):
             self.batch_web3_provider,
             self.max_workers,
             item_exporter,
-            topics=[TRANSFER_EVENT_TOPIC],
+            topics=[TRANSFER_EVENT_TOPIC, DEPOSIT_EVENT_TOPIC, WITHDRAWAL_EVENT_TOPIC],
             address=self.tokens,
         )
         job.run()
