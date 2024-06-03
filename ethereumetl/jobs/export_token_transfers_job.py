@@ -34,6 +34,7 @@ class ExportTokenTransfersJob(BaseJob):
         max_workers,
         tokens: Optional[List[str]] = None,
         item_converter: Optional[Callable[..., Dict]] = None,
+        enable_enrich=True,
     ):
         validate_range(start_block, end_block)
         self.start_block = start_block
@@ -54,6 +55,7 @@ class ExportTokenTransfersJob(BaseJob):
         self.log_mapper = EthLogMapper()
         self.token_transfer_mapper = EthTokenTransferMapper()
         self.extractor = EthTokenTransferExtractor(chain)
+        self.enable_enrich = enable_enrich
 
     def _start(self):
         self.item_exporter.open()
@@ -72,7 +74,7 @@ class ExportTokenTransfersJob(BaseJob):
         dict_logs = self._get_block_logs(start_block, end_block)
         st1 = time()
 
-        if len(dict_logs) == 0:
+        if len(dict_logs) == 0 or self.enable_enrich is False:
             block_timestamps = dict()
         else:
             block_timestamps = self._get_block_timestamps(
@@ -88,7 +90,10 @@ class ExportTokenTransfersJob(BaseJob):
                 continue
 
             item = self.token_transfer_mapper.token_transfer_to_dict(token_transfer)
-            item = self._enrich_item(item, block_timestamps)
+            if self.enable_enrich is True:
+                item = self._enrich_item(item, block_timestamps)
+            if self.item_converter is not None:
+                item = self._convert_item(item)
             token_transfers.append(item)
         exported = self.item_exporter.export_items(token_transfers)
         st3 = time()
@@ -134,6 +139,9 @@ class ExportTokenTransfersJob(BaseJob):
 
     def _enrich_item(self, item: Dict, block_timestamps: Dict) -> Dict:
         item["block_timestamp"] = block_timestamps[item["block_number"]]
+        return item
+
+    def _convert_item(self, item: Dict) -> Dict:
         if self.item_converter is not None:
             item = self.item_converter(item)
         return item
