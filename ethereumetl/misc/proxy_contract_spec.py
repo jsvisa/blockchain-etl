@@ -4,6 +4,7 @@ from web3 import Web3
 from web3.exceptions import ContractLogicError
 from eth_utils.crypto import keccak
 from eth_utils.address import to_checksum_address
+from eth_typing import HexStr
 
 ZERO_ADDR = "0x" + "0" * 40
 
@@ -32,7 +33,7 @@ class ProxyContractSpec:
     }
 
     PROXY_FUNCS = {
-        EIP897_PROXY: keccak(text=EIP897_PROXY).hex()[:10],
+        EIP897_PROXY: HexStr(keccak(text=EIP897_PROXY).hex()[:10]),
     }
 
     PROXY_SLOTS = {
