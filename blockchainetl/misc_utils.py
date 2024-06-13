@@ -31,7 +31,7 @@ from blockchainetl.file_utils import get_file_handle, smart_open
 
 
 @contextlib.contextmanager
-def get_item_iterable(input_file, delimiter: str = ",", quotechar: str | None = '"'):
+def get_item_iterable(input_file, delimiter: str = ",", quotechar: str = '"'):
     fh = get_file_handle(input_file, "r")
 
     if input_file.endswith(".csv"):
@@ -51,7 +51,7 @@ def get_item_iterable(input_file, delimiter: str = ",", quotechar: str | None = 
 
 
 @contextlib.contextmanager
-def get_item_sink(output_file, delimiter: str = ",", quotechar: str | None = '"'):
+def get_item_sink(output_file, delimiter: str = ",", quotechar: str = '"'):
     fh = get_file_handle(output_file, "w")
 
     if output_file.endswith(".csv"):
