@@ -41,6 +41,7 @@ setup(
         "requests",
         "eth-hash",
         "pandas==1.4.0",
+        "numpy==1.26.2",
         "web3>=6",
         "pyyaml",
         "sqlalchemy<2.0",
