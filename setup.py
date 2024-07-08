@@ -42,7 +42,7 @@ setup(
         "eth-hash",
         "pandas==1.4.0",
         "numpy==1.26.2",
-        "web3>=6",
+        "web3>=6,<7.0",
         "pyyaml",
         "sqlalchemy<2.0",
         "jinja2",
