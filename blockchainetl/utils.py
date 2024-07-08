@@ -23,7 +23,6 @@
 
 import time
 import logging
-import pandas as pd
 from datetime import datetime
 from typing import (
     Optional,
@@ -112,11 +111,10 @@ def rpc_response_to_result(
     else:
         result = response.get("result")
 
-    id = response.get("id")
-
     if result is None:
         error_message = "result is None in response {}".format(response)
 
+        id = response.get("id")
         if id is not None and requests is not None:
             req = [r for r in requests if r.get("id") == id]
             if len(req) == 1:
@@ -141,7 +139,7 @@ def rpc_response_to_result(
             raise ValueError(error_message)
 
     if with_id is True:
-        return result, id
+        return result, response.get("id")
 
     return result
 
@@ -216,18 +214,3 @@ def chunkify(lst: List[int], n: int) -> List[List[int]]:
     if len(chunk) > 0:
         chunks.append(chunk)
     return chunks
-
-
-def dates_of_timestamps(min_st, max_st) -> List[str]:
-    def _to_date(st: int):
-        return datetime.utcfromtimestamp(st).date()
-
-    return list(
-        e.strftime("%Y-%m-%d")
-        for e in pd.date_range(
-            _to_date(min_st),
-            _to_date(max_st),
-            freq="1D",
-            inclusive="both",
-        )
-    )

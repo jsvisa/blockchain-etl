@@ -270,9 +270,7 @@ def dump2(
         )
     elif chain_type == "utxo":
         streamer_adapter = BtcStreamerAdapter(
-            bitcoin_rpc=ThreadLocalProxy(
-                lambda: BitcoinRpc(provider_uri, cache_path=cache_path)
-            ),
+            bitcoin_rpc=ThreadLocalProxy(lambda: BitcoinRpc(provider_uri)),
             item_exporter=item_exporter,
             chain=chain,
             enable_enrich=enable_enrich,

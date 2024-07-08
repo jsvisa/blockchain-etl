@@ -41,7 +41,7 @@ class ExportBlocksJob(BaseJob):
         bitcoin_rpc,
         max_workers,
         item_exporter,
-        chain: Chain,
+        chain: str,
         export_blocks=True,
         export_transactions=True,
     ):
