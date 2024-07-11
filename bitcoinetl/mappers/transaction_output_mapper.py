@@ -22,7 +22,7 @@
 
 from typing import Any, List, Dict
 
-from bitcoinetl.btc_utils import bitcoin_to_satoshi
+from bitcoinetl.btc_utils import bitcoin_to_satoshi, get_address
 from bitcoinetl.domain.transaction_output import BtcTransactionOutput
 
 
@@ -38,7 +38,7 @@ class BtcTransactionOutputMapper(object):
         output = BtcTransactionOutput()
 
         output.index = json_dict.get("n", 0)
-        output.addresses = json_dict.get("addresses")
+        output.addresses = get_address(json_dict)
         output.txinwitness = json_dict.get("txinwitness")
         output.value = bitcoin_to_satoshi(json_dict.get("value"))
         if "scriptPubKey" in json_dict:
@@ -47,7 +47,7 @@ class BtcTransactionOutputMapper(object):
             output.script_hex = script_pub_key.get("hex")
             output.req_sigs = script_pub_key.get("reqSigs")
             output.type = script_pub_key.get("type")
-            output.addresses = script_pub_key.get("addresses")
+            output.addresses = get_address(script_pub_key)
 
         return output
 
@@ -76,7 +76,7 @@ class BtcTransactionOutputMapper(object):
             output.script_hex = json_dict.get("script_hex")
             output.req_sigs = json_dict.get("req_sigs")
             output.type = json_dict.get("type")
-            output.addresses = json_dict.get("addresses")
+            output.addresses = get_address(json_dict)
             output.txinwitness = json_dict.get("txinwitness")
             output.value = json_dict.get("value")
 

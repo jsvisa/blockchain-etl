@@ -22,6 +22,7 @@
 
 from typing import List, Dict
 
+from bitcoinetl.btc_utils import get_address
 from bitcoinetl.domain.transaction_input import BtcTransactionInput
 
 
@@ -84,7 +85,7 @@ class BtcTransactionInputMapper(object):
             input.sequence = json_dict.get("sequence")
             input.req_sigs = json_dict.get("req_sigs")
             input.type = json_dict.get("type")
-            input.addresses = json_dict.get("addresses")
+            input.addresses = get_address(json_dict)
             input.txinwitness = json_dict.get("txinwitness")
             input.value = json_dict.get("value")
 
