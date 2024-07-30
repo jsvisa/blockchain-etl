@@ -113,6 +113,7 @@ TOKEN_TRANSFERS = Table(
     Column("name", String),
     Column("symbol", String),
     Column("decimals", BigInteger),
+    Column("price", Numeric),
     Column("item_id", String, primary_key=True),
     Column("created_at", DateTime, server_default=func.current_timestamp()),
     Column("updated_at", DateTime, server_default=func.current_timestamp()),

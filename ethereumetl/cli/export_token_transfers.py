@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
 from time import time
+import requests
+from functools import lru_cache
 import logging
 import click
 from typing import List
@@ -34,16 +36,39 @@ class ExtractTokenTransferAdapter(EthBaseAdapter):
         batch_size,
         max_workers,
         tokens: List[str],
+        enable_enrich=False,
     ):
         self.chain = chain
         self.item_exporter = item_exporter
         self.tokens = tokens
         self.token_service = EthTokenService(Web3(batch_web3_provider))
         self.item_id_calculator = EthItemIdCalculator()
+        self.enable_enrich = enable_enrich
 
         EthBaseAdapter.__init__(
             self, chain, batch_web3_provider, item_exporter, batch_size, max_workers
         )
+
+    def enrich(self, items):
+        for item in items:
+            # indent with 10mins
+            item["price"] = self.get_token_price(
+                item["token_address"], item["block_timestamp"] // 600 * 600
+            )
+
+    @lru_cache(maxsize=102400)
+    def get_token_price(self, token, timestamp):
+        coin = "{chain}:{token}".format(chain=self.chain, token=token)
+        url = "https://coins.llama.fi/prices/historical/{ts}/{coin}".format(
+            ts=timestamp, coin=coin
+        )
+        r = requests.get(url)
+        try:
+            r.raise_for_status()
+            return r.json()["coins"][coin]["price"]
+        except Exception as e:
+            logging.error(f"failed to get {url}: error: {e}")
+            return None
 
     def export_all(self, start_block, end_block):
         st0 = time()
@@ -80,6 +105,9 @@ class ExtractTokenTransferAdapter(EthBaseAdapter):
 
         for item in logs:
             item["item_id"] = self.item_id_calculator.calculate(item)
+
+        if self.enable_enrich:
+            self.enrich(logs)
 
         self.item_exporter.export_items(logs)
         st3 = time()
@@ -202,6 +230,12 @@ class ExtractTokenTransferAdapter(EthBaseAdapter):
     show_default=True,
     help="Print SQL or not",
 )
+@click.option(
+    "--enable-enrich",
+    is_flag=True,
+    show_default=True,
+    help="Enable enrich with token price(via https://defillama.com/docs/api)",
+)
 def export_token_transfers(
     chain,
     last_synced_block_file,
@@ -217,6 +251,7 @@ def export_token_transfers(
     max_workers,
     tokens,
     print_sql,
+    enable_enrich,
 ):
     """Export ERC20 token transfer into PostgreSQL."""
     logging.info(f"Export token_transfers with token: {tokens}")
@@ -253,6 +288,7 @@ def export_token_transfers(
         batch_size,
         max_workers,
         tokens=tokens,
+        enable_enrich=enable_enrich,
     )
 
     streamer = Streamer(
