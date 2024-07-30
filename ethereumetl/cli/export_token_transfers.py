@@ -219,6 +219,7 @@ def export_token_transfers(
     print_sql,
 ):
     """Export ERC20 token transfer into PostgreSQL."""
+    logging.info(f"Export token_transfers with token: {tokens}")
 
     item_exporter = PostgresItemExporter(
         db_url,
@@ -264,6 +265,3 @@ def export_token_transfers(
         block_batch_size=block_batch_size,
     )
     streamer.stream()
-
-
-export_token_transfers()
