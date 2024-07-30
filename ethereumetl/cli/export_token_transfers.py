@@ -1,52 +1,184 @@
-import os
-import click
-import logging
-from datetime import datetime
-from functools import lru_cache
-from typing import Tuple
+#!/usr/bin/env python3
 
-from blockchainetl.cli.utils import global_click_options
+from time import time
+import logging
+import click
+from typing import List
+from web3 import Web3
+from blockchainetl.thread_local_proxy import ThreadLocalProxy
+from ethereumetl.providers.auto import get_provider_from_uri
+
+from blockchainetl.jobs.exporters.converters import (
+    UnixTimestampItemConverter,
+    RenameKeyItemConverter,
+)
+from blockchainetl.utils import time_elapsed
+from blockchainetl.streaming.streamer import Streamer
+from blockchainetl.enumeration.entity_type import EntityType
+from blockchainetl.jobs.exporters.in_memory_item_exporter import InMemoryItemExporter
 from blockchainetl.jobs.exporters.postgres_item_exporter import PostgresItemExporter
 from blockchainetl.streaming.postgres_utils import create_insert_statement_for_table
-from blockchainetl.enumeration.entity_type import EntityType
+from ethereumetl.streaming.eth_base_adapter import EthBaseAdapter
+from ethereumetl.service.eth_token_service import EthTokenService
 from ethereumetl.jobs.export_token_transfers_job import ExportTokenTransfersJob
-from ethereumetl.jobs.exporters.token_transfers_item_exporter import (
-    TokenTransferPostresItemExporter,
-)
-from ethereumetl.streaming.postgres_tables import TOKEN_TRANSFERS, ERC721_TRANSFERS
-from ethereumetl.providers.auto import get_provider_from_uri
-from blockchainetl.thread_local_proxy import ThreadLocalProxy
+from ethereumetl.streaming.tsdb_tables import TOKEN_TRANSFERS
+from ethereumetl.streaming.eth_item_id_calculator import EthItemIdCalculator
 
 
-@lru_cache(1000)
-def to_st_day(value):
-    return datetime.utcfromtimestamp(value).strftime("%Y-%m-%d")
+class ExtractTokenTransferAdapter(EthBaseAdapter):
+    def __init__(
+        self,
+        chain,
+        batch_web3_provider,
+        item_exporter,
+        batch_size,
+        max_workers,
+        tokens: List[str],
+    ):
+        self.chain = chain
+        self.item_exporter = item_exporter
+        self.tokens = tokens
+        self.token_service = EthTokenService(Web3(batch_web3_provider))
+        self.item_id_calculator = EthItemIdCalculator()
+
+        EthBaseAdapter.__init__(
+            self, chain, batch_web3_provider, item_exporter, batch_size, max_workers
+        )
+
+    def export_all(self, start_block, end_block):
+        st0 = time()
+        exporter = InMemoryItemExporter(item_types=[EntityType.TOKEN_TRANSFER])
+
+        job = ExportTokenTransfersJob(
+            self.chain,
+            start_block=start_block,
+            end_block=end_block,
+            batch_size=self.batch_size,
+            batch_web3_provider=self.batch_web3_provider,
+            item_exporter=exporter,
+            max_workers=self.max_workers,
+            tokens=self.tokens,
+        )
+        job.run()
+
+        logs = exporter.get_items(EntityType.TOKEN_TRANSFER)
+        if len(logs) == 0:
+            return
+        st1 = time()
+
+        for log in logs:
+            token = self.token_service.get_token(log["token_address"])
+            log.update(
+                {
+                    "type": EntityType.TOKEN_TRANSFER,
+                    "name": token.name,
+                    "symbol": token.symbol,
+                    "decimals": token.decimals,
+                }
+            )
+        st2 = time()
+
+        for item in logs:
+            item["item_id"] = self.item_id_calculator.calculate(item)
+
+        self.item_exporter.export_items(logs)
+        st3 = time()
+
+        logging.info(
+            f"Insert {self.chain} [{start_block, end_block}] "
+            f"#logs={len(logs)} "
+            f"@all={time_elapsed(st0)}s @extract={time_elapsed(st0, st1)}s "
+            f"@enrich={time_elapsed(st1, st2)}s "
+            f"@export={time_elapsed(st2, st3)}s"
+        )
 
 
+# pass kwargs, ref https://stackoverflow.com/a/36522299/2298986
 @click.command(context_settings=dict(help_option_names=["-h", "--help"]))
-@global_click_options
+@click.option(
+    "-c",
+    "--chain",
+    required=True,
+    show_default=True,
+    type=str,
+    help="The chain network to connect to.",
+)
+@click.option(
+    "-l",
+    "--last-synced-block-file",
+    default=".priv/extract-token-transfer.txt",
+    required=True,
+    show_default=True,
+    help="The file used to store the last synchronized block file",
+)
+@click.option(
+    "--lag",
+    default=60,
+    show_default=True,
+    type=int,
+    help="The number of blocks to lag behind the network.",
+)
+@click.option(
+    "-p",
+    "--provider-uri",
+    show_default=True,
+    type=str,
+    envvar="BLOCKCHAIN_ETL_PROVIDER_URI",
+    help="The URI of the JSON-RPC's provider.",
+)
+@click.option(
+    "--db-url",
+    type=str,
+    default="postgresql://postgres:root@127.0.0.1:5432/postgres",
+    envvar="BLOCKCHAIN_ETL_DSDB_URL",
+    show_default=True,
+    help="The data TSDB connection url(used to read source items)",
+)
+@click.option(
+    "--db-schema",
+    type=str,
+    show_default=True,
+    help="The data schema",
+)
 @click.option(
     "-s",
     "--start-block",
-    default=0,
+    default=1,
     show_default=True,
     type=int,
-    help="Start block",
+    help="Start block, included",
 )
 @click.option(
     "-e",
     "--end-block",
-    required=True,
+    default=None,
+    show_default=True,
     type=int,
-    help="End block",
+    help="End block, included",
+)
+@click.option(
+    "--period-seconds",
+    default=300,
+    show_default=True,
+    type=int,
+    help="How many seconds to sleep between syncs",
+)
+@click.option(
+    "-B",
+    "--block-batch-size",
+    default=100,
+    show_default=True,
+    type=int,
+    help="How many blocks to batch in single sync round",
 )
 @click.option(
     "-b",
     "--batch-size",
-    default=100,
+    default=2000,
     show_default=True,
     type=int,
-    help="The number of blocks to filter at a time.",
+    help="How many query items are carried in a JSON RPC request, "
+    "the JSON RPC Server is required to support batch requests",
 )
 @click.option(
     "-w",
@@ -54,56 +186,15 @@ def to_st_day(value):
     default=5,
     show_default=True,
     type=int,
-    help="The maximum number of workers.",
+    help="The number of workers",
 )
 @click.option(
-    "-p",
-    "--provider-uri",
-    required=True,
-    type=str,
-    help="The URI of the web3 provider",
-)
-@click.option(
-    "--pg-url",
-    type=str,
-    default="postgresql://postgres:root@127.0.0.1:5432/postgres",
-    envvar="BLOCKCHAIN_ETL_PG_URL",
-    help="The Postgres connection url(used to store token-id items)",
-)
-@click.option(
-    "--pg-threads",
-    type=int,
-    default=10,
-    help="The Postgres threads",
-)
-@click.option(
-    "--pg-schema",
-    type=str,
-    default=None,
-    help="The PostgreSQL schema, default to the name of chain",
-)
-@click.option(
-    "-t",
     "--tokens",
     default=None,
     show_default=True,
     type=str,
     multiple=True,
-    help="The list of token addresses to filter by.",
-)
-@click.option(
-    "-T",
-    "--tokens-file",
-    default=None,
-    show_default=True,
-    type=click.Path(exists=True, file_okay=True, readable=True),
-    help="The list of token addresses to filter by.",
-)
-@click.option(
-    "--is-erc721",
-    is_flag=True,
-    show_default=True,
-    help="The tokens are ERC721",
+    help="The list of token address to filter by.",
 )
 @click.option(
     "--print-sql",
@@ -113,76 +204,66 @@ def to_st_day(value):
 )
 def export_token_transfers(
     chain,
+    last_synced_block_file,
+    lag,
+    provider_uri,
+    db_url,
+    db_schema,
     start_block,
     end_block,
+    period_seconds,
+    block_batch_size,
     batch_size,
     max_workers,
-    provider_uri,
-    pg_url,
-    pg_threads,
-    pg_schema,
-    tokens: Tuple,
-    tokens_file,
+    tokens,
     print_sql,
-    is_erc721,
 ):
-    """Export ERC20/ERC721 transfers into PostgreSQL."""
+    """Export ERC20 token transfer into PostgreSQL."""
 
-    if tokens_file is not None and os.path.exists(tokens_file):
-        if tokens is None:
-            tokens = tuple()
-        tokens = list(tokens)
-        with open(tokens_file, "r") as fp:
-            tokens.extend([e.strip() for e in fp.readlines()])
-
-    logging.info(f"Run export with tokens: {tokens} block: {start_block, end_block}")
-    if pg_schema is None:
-        pg_schema = chain
-
-    pg_exporter = PostgresItemExporter(
-        pg_url,
-        pg_schema,
+    item_exporter = PostgresItemExporter(
+        db_url,
+        db_schema,
         item_type_to_insert_stmt_mapping={
             EntityType.TOKEN_TRANSFER: create_insert_statement_for_table(
-                TOKEN_TRANSFERS, on_conflict_do_update=False, schema=pg_schema
-            ),
-            EntityType.ERC721_TRANSFER: create_insert_statement_for_table(
-                ERC721_TRANSFERS, on_conflict_do_update=False, schema=pg_schema
+                TOKEN_TRANSFERS, on_conflict_do_update=False
             ),
         },
+        converters=(
+            UnixTimestampItemConverter(),
+            RenameKeyItemConverter(
+                key_mapping={
+                    "block_number": "blknum",
+                    "transaction_hash": "txhash",
+                    "transaction_index": "txpos",
+                    "log_index": "logpos",
+                }
+            ),
+        ),
         print_sql=print_sql,
-        workers=pg_threads,
-        pool_size=pg_threads,
-        pool_overflow=pg_threads * 2,
-    )
-    item_exporter = TokenTransferPostresItemExporter(
-        pg_exporter, addon_erc721=is_erc721
+        workers=10,
+        pool_size=20,
+        pool_overflow=5,
     )
 
-    def item_converter(item):
-        rename_columns = {
-            "block_number": "blknum",
-            "block_timestamp": "_st",
-            "transaction_hash": "txhash",
-            "transaction_index": "txpos",
-            "log_index": "logpos",
-        }
-        for old, new in rename_columns.items():
-            item[new] = item.pop(old)
-        item["_st_day"] = to_st_day(item["_st"])
-        return item
-
-    job = ExportTokenTransfersJob(
+    streamer_adapter = ExtractTokenTransferAdapter(
         chain,
+        ThreadLocalProxy(lambda: get_provider_from_uri(provider_uri, batch=True)),  # type: ignore
+        item_exporter,
+        batch_size,
+        max_workers,
+        tokens=tokens,
+    )
+
+    streamer = Streamer(
+        blockchain_streamer_adapter=streamer_adapter,  # type: ignore
+        last_synced_block_file=last_synced_block_file,
+        lag=lag,
         start_block=start_block,
         end_block=end_block,
-        batch_size=batch_size,
-        batch_web3_provider=ThreadLocalProxy(
-            lambda: get_provider_from_uri(provider_uri, batch=True)
-        ),
-        item_exporter=item_exporter,
-        max_workers=max_workers,
-        tokens=tokens,
-        item_converter=item_converter,
+        period_seconds=period_seconds,
+        block_batch_size=block_batch_size,
     )
-    job.run()
+    streamer.stream()
+
+
+export_token_transfers()
