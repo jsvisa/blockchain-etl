@@ -65,7 +65,10 @@ class ExtractTokenTransferAdapter(EthBaseAdapter):
         r = requests.get(url)
         try:
             r.raise_for_status()
-            return r.json()["coins"][coin]["price"]
+            res = r.json()["coins"]
+            if coin in res:
+                return res[coin]["price"]
+            return None
         except Exception as e:
             logging.error(f"failed to get {url}: error: {e}")
             return None
