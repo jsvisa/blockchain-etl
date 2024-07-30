@@ -51,9 +51,10 @@ class ExtractTokenTransferAdapter(EthBaseAdapter):
 
     def enrich(self, items):
         for item in items:
-            # indent with 10mins
+            # indent with 6h
+            offset = 6 * 3600
             item["price"] = self.get_token_price(
-                item["token_address"], item["block_timestamp"] // 600 * 600
+                item["token_address"], item["block_timestamp"] // offset * offset
             )
 
     @lru_cache(maxsize=102400)
