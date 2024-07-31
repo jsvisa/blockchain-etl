@@ -84,12 +84,15 @@ def generate_get_log_by_number_json_rpc(
 
 
 def generate_parity_trace_block_by_number_json_rpc(
-    block_numbers: List[int],
+    block_numbers: List[int], config: Dict = None
 ) -> Generator[Dict[str, Union[str, int]], None, None]:
     for block_number in block_numbers:
+        params = [hex(block_number)]
+        if config is not None:
+            params.append(config)
         yield generate_json_rpc(
             method="trace_block",
-            params=[hex(block_number)],
+            params=params,
             request_id=block_number,
         )
 
