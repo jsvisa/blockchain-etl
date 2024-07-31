@@ -317,9 +317,16 @@ class ExportTracesJob(BaseJob):
     def _export_batch_geth_by_block(
         self, block_number_batch: List[int]
     ) -> Generator[Tuple[int, Dict], None, None]:
-        trace_block_rpc = list(
-            generate_trace_block_by_number_json_rpc(block_number_batch)
-        )
+        if env.IS_GETH_TRACE is True:
+            trace_block_rpc = generate_parity_trace_block_by_number_json_rpc(
+                block_number_batch, config={"tracer": "callTracer"}
+            )
+        else:
+            trace_block_rpc = generate_trace_block_by_number_json_rpc(
+                block_number_batch
+            )
+
+        trace_block_rpc = list(trace_block_rpc)
         if self.batch_size == 1:
             trace_block_rpc = trace_block_rpc[0]
         response = self.batch_web3_provider.make_batch_request(
