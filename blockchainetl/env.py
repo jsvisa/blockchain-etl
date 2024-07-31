@@ -36,6 +36,8 @@ IS_ARBITRUM_TRACE = os.getenv("BLOCKCHAIN_ETL_IS_ARBITRUM_TRACE") == "1"
 # experimental: only for go-ethereum
 IS_FLATCALL_TRACE = os.getenv("BLOCKCHAIN_ETL_IS_FLATCALL_TRACE") == "1"
 
+IS_GETH_TRACE = os.getenv("BLOCKCHAIN_ETL_IS_GETH_TRACE") == "1"
+
 # default 60s is enough, in some cases(eg: trace_block),
 # we may need to increase the timeout to 180 or more seconds
 REQUEST_TIMEOUT_SECONDS = int(os.getenv("BLOCKCHAIN_ETL_REQUEST_TIMEOUT_SECONDS", "60"))
