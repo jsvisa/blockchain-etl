@@ -81,7 +81,7 @@ class EthTokenTransferExtractor(object):
 
         # FIXME: drop the Pandora ERC721 Transfer
         if (
-            self.chan == Chain.ETHEREUM
+            self.chain == Chain.ETHEREUM
             and log.address == "0x9e9fbde7c7a83c43913bddc8779158f1368f0413"
             and topics_0 == TRANSFER_EVENT_TOPIC
         ):
