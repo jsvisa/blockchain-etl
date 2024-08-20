@@ -25,6 +25,7 @@ import logging
 from typing import Optional
 
 from blockchainetl.utils import hex_to_dec
+from blockchainetl.enumeration.chain import Chain
 from ethereumetl.misc.constant import ZERO_ADDR
 from ethereumetl.domain.log import EthLog
 from ethereumetl.domain.token_transfer import EthTokenTransfer
@@ -77,6 +78,14 @@ class EthTokenTransferExtractor(object):
             return None
 
         topics_0 = topics[0]
+
+        # FIXME: drop the Pandora ERC721 Transfer
+        if (
+            self.chan == Chain.ETHEREUM
+            and log.address == "0x9e9fbde7c7a83c43913bddc8779158f1368f0413"
+            and topics_0 == TRANSFER_EVENT_TOPIC
+        ):
+            return None
 
         # convert Deposit/Withdrawal events to Transfer
         if topics_0 in (DEPOSIT_EVENT_TOPIC, WITHDRAWAL_EVENT_TOPIC) and n_topics > 1:
