@@ -25,7 +25,6 @@ import logging
 from typing import Optional
 
 from blockchainetl.utils import hex_to_dec
-from blockchainetl.enumeration.chain import Chain
 from ethereumetl.misc.constant import ZERO_ADDR
 from ethereumetl.domain.log import EthLog
 from ethereumetl.domain.token_transfer import EthTokenTransfer
@@ -43,10 +42,10 @@ ERC20_TRANSFER_EVENT_TOPIC = (
     "0xe59fdd36d0d223c0c7d996db7ad796880f45e1936cb0bb7ac102e7082e031487"
 )
 
-WETH_TOKEN_ADDRESS = "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"
-
+# WETH: "https://etherscan.io/token/0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"
 # the old contract missing Deposit/Withdrawal events
-WETH_OLD_TOKEN_ADDRESS = "0x2956356cd2a2bf3202f771f50d3d14a367b48070"
+# WETH_OLD: = "https://etherscan.io/token/0x2956356cd2a2bf3202f771f50d3d14a367b48070"
+
 # Deposit(address indexed dst, uint256 wad)
 DEPOSIT_EVENT_TOPIC = (
     "0xe1fffcc4923d04b559f4d29a8bfc6cda04eb5b0d3c460751c2402c5c5cc9109c"
@@ -79,11 +78,7 @@ class EthTokenTransferExtractor(object):
         topics_0 = topics[0]
 
         # convert Deposit/Withdrawal events to Transfer
-        if (
-            self.chain == Chain.ETHEREUM
-            and to_normalized_address(log.address) == WETH_TOKEN_ADDRESS
-            and topics_0 in (DEPOSIT_EVENT_TOPIC, WITHDRAWAL_EVENT_TOPIC)
-        ):
+        if topics_0 in (DEPOSIT_EVENT_TOPIC, WITHDRAWAL_EVENT_TOPIC):
             log.topics = [
                 TRANSFER_EVENT_TOPIC,
                 ZERO_ADDR if topics_0 == DEPOSIT_EVENT_TOPIC else topics[1],
