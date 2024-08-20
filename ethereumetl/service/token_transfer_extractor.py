@@ -71,14 +71,15 @@ class EthTokenTransferExtractor(object):
 
     def extract_transfer_from_log(self, log: EthLog) -> Optional[EthTokenTransfer]:
         topics = log.topics
-        if topics is None or len(topics) < 1:
+        n_topics = len(topics)
+        if topics is None or n_topics < 1:
             # This is normal, topics can be empty for anonymous events
             return None
 
         topics_0 = topics[0]
 
         # convert Deposit/Withdrawal events to Transfer
-        if topics_0 in (DEPOSIT_EVENT_TOPIC, WITHDRAWAL_EVENT_TOPIC):
+        if topics_0 in (DEPOSIT_EVENT_TOPIC, WITHDRAWAL_EVENT_TOPIC) and n_topics > 1:
             log.topics = [
                 TRANSFER_EVENT_TOPIC,
                 ZERO_ADDR if topics_0 == DEPOSIT_EVENT_TOPIC else topics[1],
