@@ -37,6 +37,12 @@ TRANSFER_EVENT_TOPIC = (
     "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
 )
 
+# https://etherscan.io/token/0x9e9fbde7c7a83c43913bddc8779158f1368f0413
+# ERC20Transfer(address indexed from, address indexed to, uint256 amount)
+ERC20_TRANSFER_EVENT_TOPIC = (
+    "0xe59fdd36d0d223c0c7d996db7ad796880f45e1936cb0bb7ac102e7082e031487"
+)
+
 WETH_TOKEN_ADDRESS = "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"
 
 # the old contract missing Deposit/Withdrawal events
@@ -49,6 +55,13 @@ DEPOSIT_EVENT_TOPIC = (
 WITHDRAWAL_EVENT_TOPIC = (
     "0x7fcf532c15f0a6db0bd6d0e038bea71d30d808c7d98cb3bf7268a95bf5081b65"
 )
+
+TRANSFER_EVENT_TOPICS = [
+    TRANSFER_EVENT_TOPIC,
+    ERC20_TRANSFER_EVENT_TOPIC,
+    DEPOSIT_EVENT_TOPIC,
+    WITHDRAWAL_EVENT_TOPIC,
+]
 
 logger = logging.getLogger(__name__)
 
@@ -79,7 +92,7 @@ class EthTokenTransferExtractor(object):
             topics_0 = TRANSFER_EVENT_TOPIC
 
         # event Transfer(address indexed from, address indexed to, uint256 value);
-        if topics_0 == TRANSFER_EVENT_TOPIC:
+        if topics_0 in (TRANSFER_EVENT_TOPIC, ERC20_TRANSFER_EVENT_TOPIC):
             return self._extract(log)
 
         return None

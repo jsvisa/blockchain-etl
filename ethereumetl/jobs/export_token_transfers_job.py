@@ -16,9 +16,7 @@ from ethereumetl.mappers.log_mapper import EthLogMapper
 from blockchainetl.enumeration.entity_type import EntityType
 from ethereumetl.service.token_transfer_extractor import (
     EthTokenTransferExtractor,
-    TRANSFER_EVENT_TOPIC,
-    DEPOSIT_EVENT_TOPIC,
-    WITHDRAWAL_EVENT_TOPIC,
+    TRANSFER_EVENT_TOPICS,
 )
 
 
@@ -131,7 +129,7 @@ class ExportTokenTransfersJob(BaseJob):
             self.batch_web3_provider,
             self.max_workers,
             item_exporter,
-            topics=[TRANSFER_EVENT_TOPIC, DEPOSIT_EVENT_TOPIC, WITHDRAWAL_EVENT_TOPIC],
+            topics=TRANSFER_EVENT_TOPICS,
             address=self.tokens,
         )
         job.run()
