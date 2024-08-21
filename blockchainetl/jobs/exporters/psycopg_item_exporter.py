@@ -27,15 +27,17 @@ def fillin_items_to_stream(items: Iterable[Dict], output: io.StringIO):
     # Get the fieldnames from the keys of the first dictionary
     iterator = iter(items)
     try:
-        fieldnames = next(iterator).keys()
+        firstrow = next(iterator)
     except StopIteration:
         raise ValueError("The list cannot be empty")
 
+    fieldnames = firstrow.keys()
     # Create a csv writer object
     writer = csv.DictWriter(output, fieldnames=fieldnames, delimiter="^")
 
     # Write the header
     writer.writeheader()
+    writer.writerow(firstrow)
 
     # Write the data
     for row in iterator:
