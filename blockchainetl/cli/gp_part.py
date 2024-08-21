@@ -3,10 +3,10 @@ import psycopg2 as psycopg
 import pandas as pd
 import logging
 from time import time
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 
 from blockchainetl.utils import time_elapsed
-from blockchainetl.enumeration.entity_type import EntityType, chain_entity_table
+from blockchainetl.enumeration.entity_type import chain_entity_table
 from blockchainetl.misc.psycopg import set_psycopg2_waitable
 
 
@@ -17,7 +17,7 @@ from blockchainetl.misc.psycopg import set_psycopg2_waitable
     "-T",
     "--gp-tables",
     type=str,
-    default=",".join(EntityType.ALL_FOR_ETL),
+    default="block,transaction,log,token_transfer,trace",
     required=True,
     show_default=True,
     help="The list of partition tables to be created, based on entity-type, split by ','.",
@@ -33,17 +33,18 @@ from blockchainetl.misc.psycopg import set_psycopg2_waitable
 @click.option(
     "-e",
     "--end-date",
-    default=datetime.utcnow().date(),
+    default=datetime.now(timezone.utc).date(),
     show_default=True,
     help="End datetime(excluded)",
 )
 @click.option(
     "--alter",
-    type=click.Choice(["add", "split"]),
+    type=click.Choice(["add", "split", "create"]),
     default="split",
     help="Alter table partition with 'add parition' or 'split default partition';"
     "'add' new partition only available if the table is empty, else GreenPlum refuse to add;"
-    "'split' works when the table already contains some data, and split a new from the DEFAULT PARTITION",  # noqa
+    "'split' works when the table already contains some data, and split a new from the DEFAULT PARTITION"  # noqa
+    "'create' creates a new partition from the DEFAULT PARTITION",
 )
 @click.option(
     "--freq-days",
@@ -80,8 +81,12 @@ def gp_part(
 
     gp = psycopg.connect(gp_url)
 
-    def partition_exists(cursor, tbl: str, part: str) -> bool:
-        cursor.execute(f"SELECT to_regclass('{tbl}_1_prt_p{part}')")
+    def partition_exists(cursor, tbl: str, st: str, alter: str) -> bool:
+        if alter == "create":
+            tbl = f"_{tbl}_p{''.join(st.split('-')[:2])}"
+        else:
+            tbl = f"{tbl}_1_prt_p{st.replace('-', '')}"
+        cursor.execute(f"SELECT to_regclass('{tbl}')")
         (regname,) = cursor.fetchone()
         return regname is not None
 
@@ -90,6 +95,11 @@ def gp_part(
             return (
                 f"ALTER TABLE {tbl} ADD PARTITION p{int(st.replace('-', ''))} "
                 f"START ('{st}'::date) END ('{et}'::date)"
+            )
+        elif alter == "create":
+            return (
+                f"CREATE TABLE _{tbl}_p{''.join(st.split('-')[:2])} PARTITION OF {tbl} "
+                f"FOR VALUES FROM ('{st} 00:00:00') TO ('{et} 00:00:00') USING columnar"
             )
         return (
             f"ALTER TABLE {tbl} SPLIT DEFAULT PARTITION START ('{st}'::date) END ('{et}'::date) "
@@ -124,7 +134,7 @@ def gp_part(
             for entity_type in gp_tables:
                 tbl = chain_entity_table(gp_schema, entity_type, ignore_unknown=True)
                 st, et = sday.strftime("%Y-%m-%d"), eday.strftime("%Y-%m-%d")
-                if partition_exists(cursor, tbl, st.replace("-", "")):
+                if partition_exists(cursor, tbl, st, alter):
                     logging.info(f"tbl: {tbl} partition: {st} exists, skip")
                     continue
 
@@ -140,3 +150,12 @@ def gp_part(
                 gp.commit()
 
     gp.close()
+
+
+if __name__ == "__main__":
+    import logging
+
+    logging.basicConfig(
+        format="[%(asctime)s] - %(levelname)s - %(message)s", level=logging.INFO
+    )
+    gp_part()

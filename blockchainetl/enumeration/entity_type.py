@@ -44,13 +44,8 @@ class EntityType:
         TOKEN_BALANCE,
     ]
 
-    ALL_FOR_ETL = [
-        BLOCK,
-        TRANSACTION,
-        RECEIPT,
-        LOG,
-        TOKEN_TRANSFER,
-    ]
+    ALL_FOR_ETL = [BLOCK, TRANSACTION, RECEIPT, LOG, TOKEN_TRANSFER]
+    ALL_COLUMN_TYPES = [BLOCK, TRANSACTION, LOG, TOKEN_TRANSFER]
 
     ALL_FOR_EASY_ETL = [
         BLOCK,
