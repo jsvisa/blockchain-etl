@@ -1,4 +1,5 @@
 from blockchainetl.jobs.exporters.postgres_item_exporter import PostgresItemExporter
+from blockchainetl.jobs.exporters.psycopg_item_exporter import PsycopgItemExporter
 from blockchainetl.streaming.postgres_utils import create_insert_statement_for_table
 from blockchainetl.enumeration.chain import Chain
 from blockchainetl.enumeration.entity_type import EntityType
@@ -11,6 +12,7 @@ from blockchainetl.jobs.exporters.converters import (
     ListToStringItemConverter,
     ListCountItemConverter,
     UnixTimestampItemConverter,
+    DropFieldItemConverter,
 )
 from ethereumetl.streaming import postgres_tables as pg
 from ethereumetl.streaming import tsdb_tables as evm_ts
@@ -141,6 +143,17 @@ def create_tsdb_exporter(
                 evm_ts.CONTRACTS, False, schema=dbschema
             ),
         }
+        item_type_to_table_mapping = {
+            EntityType.BLOCK: evm_ts.BLOCKS.fullname,
+            EntityType.TRANSACTION: evm_ts.TRANSACTIONS.fullname,
+            EntityType.LOG: evm_ts.LOGS.fullname,
+            EntityType.TOKEN_TRANSFER: evm_ts.TOKEN_TRANSFERS.fullname,
+            EntityType.ERC721_TRANSFER: evm_ts.ERC721_TRANSFERS.fullname,
+            EntityType.ERC1155_TRANSFER: evm_ts.ERC1155_TRANSFERS.fullname,
+            EntityType.TRACE: evm_ts.TRACES.fullname,
+            EntityType.TOKEN: evm_ts.TOKENS.fullname,
+            EntityType.CONTRACT: evm_ts.CONTRACTS.fullname,
+        }
 
     else:
         item_type_to_insert_stmt_mapping = {
@@ -154,6 +167,26 @@ def create_tsdb_exporter(
                 btc_ts.TRACES, False, schema=dbschema
             ),
         }
+        item_type_to_table_mapping = {
+            EntityType.BLOCK: btc_ts.BLOCKS.fullname,
+            EntityType.TRANSACTION: btc_ts.TRANSACTIONS.fullname,
+            EntityType.TRACE: btc_ts.TRACES.fullname,
+        }
+
+    if connection_url.startswith("postgresql+psycopg2://"):
+        connection_url = connection_url.replace(
+            "postgresql+psycopg2://", "postgresql://"
+        )
+        extra_converters = [
+            DropFieldItemConverter(["type", "trace_id", "block_hash", "item_timestamp"])
+        ]
+        return PsycopgItemExporter(
+            connection_url,
+            dbschema,
+            item_type_to_table_mapping=item_type_to_table_mapping,
+            converters=evm_exporter_converters() + extra_converters,
+            print_sql=print_sql,
+        )
 
     return PostgresItemExporter(
         connection_url,
