@@ -60,13 +60,11 @@ class PsycopgItemExporter:
         dbschema,
         item_type_to_table_mapping,
         converters=(),
-        print_sql=True,
     ):
         self.connection_url = connection_url
         self.dbschema = dbschema
         self.item_type_to_table_mapping = item_type_to_table_mapping
         self.converter = CompositeItemConverter(converters)
-        self.print_sql = print_sql
 
     def open(self):
         self.conn = psycopg.connect(self.connection_url)

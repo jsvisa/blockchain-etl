@@ -185,7 +185,6 @@ def create_tsdb_exporter(
             dbschema,
             item_type_to_table_mapping=item_type_to_table_mapping,
             converters=evm_exporter_converters() + extra_converters,
-            print_sql=print_sql,
         )
 
     return PostgresItemExporter(
