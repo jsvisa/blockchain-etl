@@ -460,8 +460,19 @@ def cursor_copy_from_stream(
             # else psycopg2 will raise InvalidTextRepresentation for the numeric columns
             data = []
             for e in stream.readlines():
-                cols = e.strip().split(delimiter)
-                cols = [c if len(c) > 0 else None for c in cols]
+                cols = []
+                for c in e.strip().split(delimiter):
+                    col = c if len(c) > 0 else None
+                    # if the column is quoted and contains escaped quotes, unescape them,
+                    # this is always used when the column is a JSON or JSONB
+                    if (
+                        col is not None
+                        and col.startswith('"')
+                        and col.endswith('"')
+                        and '""' in col
+                    ):
+                        col = col.replace('""', '"')[1:-1]
+                    cols.append(col)
                 data.append(tuple(cols))
             query = "INSERT INTO {}({}) VALUES %s ON CONFLICT DO NOTHING".format(
                 tbl, columns
