@@ -1,10 +1,17 @@
 import csv
 import io
+import json
 import psycopg2 as psycopg
 from typing import Iterable, List, Dict
 from blockchainetl.streaming.postgres_utils import cursor_copy_from_stream
 from .converters.composite_item_converter import CompositeItemConverter
 from ._utils import group_by_item_type
+
+
+def encode_value(value):
+    if isinstance(value, (list, dict)):
+        return json.dumps(value)
+    return value
 
 
 def list_of_dicts_to_csv(items: List[Dict]) -> str:
@@ -37,11 +44,12 @@ def fillin_items_to_stream(items: Iterable[Dict], output: io.StringIO):
 
     # Write the header
     writer.writeheader()
-    writer.writerow(firstrow)
+    # Don't forget the first row
+    writer.writerow({k: encode_value(v) for k, v in firstrow.items()})
 
     # Write the data
     for row in iterator:
-        writer.writerow(row)
+        writer.writerow({k: encode_value(v) for k, v in row.items()})
 
     # To reset the buffer position to the start so it can be read from the beginning
     output.seek(0)
@@ -60,11 +68,13 @@ class PsycopgItemExporter:
         dbschema,
         item_type_to_table_mapping,
         converters=(),
+        print_sql=False,
     ):
         self.connection_url = connection_url
         self.dbschema = dbschema
         self.item_type_to_table_mapping = item_type_to_table_mapping
         self.converter = CompositeItemConverter(converters)
+        self.print_sql = print_sql
 
     def open(self):
         self.conn = psycopg.connect(self.connection_url)
@@ -82,6 +92,10 @@ class PsycopgItemExporter:
                 tbl = "{}.{}".format(self.dbschema, table)
                 # don't reuse the stream, else some wired data occupied issue will happen
                 stream = items2stream(self.convert_items(item_group))
+                # if print sql then write the stream to stdout, and then reseek to 0
+                if self.print_sql:
+                    print(stream.getvalue())
+                    stream.seek(0)
 
                 rows += cursor_copy_from_stream(
                     self.conn, cursor, tbl, stream, delimiter="^"
