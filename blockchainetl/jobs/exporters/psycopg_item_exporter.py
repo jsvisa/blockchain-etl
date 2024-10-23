@@ -2,6 +2,7 @@ import csv
 import io
 import json
 import psycopg2 as psycopg
+import logging
 from typing import Iterable, List, Dict
 from blockchainetl.streaming.postgres_utils import cursor_copy_from_stream
 from .converters.composite_item_converter import CompositeItemConverter
@@ -83,6 +84,11 @@ class PsycopgItemExporter:
         items_grouped_by_type = group_by_item_type(items)
 
         rows = 0
+        if self.conn.closed:
+            # auto reconnect if connection is closed
+            logging.info("Psycopg connection is closed, reconnecting")
+            self.open()
+
         with self.conn.cursor() as cursor:
             for item_type, table in self.item_type_to_table_mapping.items():
                 item_group = items_grouped_by_type.get(item_type)
