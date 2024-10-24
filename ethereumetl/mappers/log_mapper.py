@@ -36,6 +36,7 @@ class EthLogMapper(object):
         log.transaction_index = hex_to_dec(json_dict.get("transactionIndex"))
         log.block_hash = json_dict.get("blockHash")
         log.block_number = hex_to_dec(json_dict.get("blockNumber"))
+        log.block_timestamp = hex_to_dec(json_dict.get("blockTimestamp"))
         log.address = to_normalized_address(json_dict.get("address"))
         log.data = json_dict.get("data")
         log.topics = json_dict.get("topics", [])
@@ -59,6 +60,7 @@ class EthLogMapper(object):
         log.block_hash = block_hash
 
         log.block_number = json_dict.get("blockNumber")
+        log.block_timestamp = json_dict.get("blockTimestamp")
         log.address = to_normalized_address(json_dict.get("address"))
         log.data = json_dict.get("data")
 
@@ -75,6 +77,7 @@ class EthLogMapper(object):
             "transaction_index": log.transaction_index,
             "block_hash": log.block_hash,
             "block_number": log.block_number,
+            "block_timestamp": log.block_timestamp,
             "address": log.address,
             "data": log.data,
             "topics": log.topics,
@@ -88,6 +91,7 @@ class EthLogMapper(object):
         log.transaction_index = json_dict.get("transaction_index")
         log.block_hash = json_dict.get("block_hash")
         log.block_number = json_dict.get("block_number")
+        log.block_timestamp = json_dict.get("block_timestamp")
         log.address = to_normalized_address(json_dict.get("address"))
         log.data = json_dict.get("data")
 

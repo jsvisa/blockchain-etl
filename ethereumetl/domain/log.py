@@ -30,6 +30,7 @@ class EthLog(object):
         self.transaction_index: Optional[int] = None
         self.block_hash: Optional[str] = None
         self.block_number: Optional[int] = None
+        self.block_timestamp: Optional[int] = None
         self.address: Optional[str] = None
         self.data: Optional[str] = None
         self.topics: List[str] = []

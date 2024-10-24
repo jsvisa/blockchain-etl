@@ -49,7 +49,7 @@ class ExportLogsJob(BaseJob):
         )
         response = self.batch_web3_provider.make_batch_request(json.dumps(logs_rpc))
         results = rpc_response_to_result(response)
-        logs = [self.log_mapper.json_dict_to_log(result) for result in results]
+        logs = (self.log_mapper.json_dict_to_log(result) for result in results)
 
         for log in logs:
             self.item_exporter.export_item(self.log_mapper.log_to_dict(log))
