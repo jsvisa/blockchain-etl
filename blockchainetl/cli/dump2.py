@@ -13,6 +13,7 @@ from blockchainetl.thread_local_proxy import ThreadLocalProxy
 from blockchainetl.streaming.streamer import Streamer
 from blockchainetl.enumeration.entity_type import EntityType, parse_entity_types
 from blockchainetl.jobs.exporters.item_exporter_builder import create_tsdb_exporter
+from blockchainetl.jobs.exporters import NoopItemExporter
 
 from bitcoinetl.rpc.bitcoin_rpc import BitcoinRpc
 from bitcoinetl.streaming.btc_streamer_adapter import BtcStreamerAdapter
@@ -184,6 +185,12 @@ from ethereumetl.streaming.utils import build_erc20_token_reader
     show_default=True,
     help="Used as dicskcache,token's attributes for EVM, rawtransaction for Bitcoin",
 )
+@click.option(
+    "--noop",
+    is_flag=True,
+    show_default=True,
+    help="Noop mode, do not write to target db",
+)
 def dump2(
     ctx,
     chain,
@@ -207,6 +214,7 @@ def dump2(
     target_db_workers,
     print_sql,
     cache_path,
+    noop,
 ):
     """Dump all data from full-node's json-rpc to PostgreSQL(TimescaleDB)."""
 
@@ -223,20 +231,24 @@ def dump2(
     provider_uri = pick_random_provider_uri(provider_uri)
     logging.info("Using provider: " + provider_uri)
 
-    if target_db_schema is not None and len(target_db_schema) > 0:
-        schema = target_db_schema
+    if noop is True:
+        logging.info("Noop mode, do not write to the target db")
+        item_exporter = NoopItemExporter()
     else:
-        schema = chain
-    if pending_mode is True:
-        schema += "_pending"
-    item_exporter = create_tsdb_exporter(
-        chain,
-        schema,
-        target_db_url,
-        workers=target_db_workers,
-        pool_size=target_db_workers + 2,
-        print_sql=print_sql,
-    )
+        if target_db_schema is not None and len(target_db_schema) > 0:
+            schema = target_db_schema
+        else:
+            schema = chain
+        if pending_mode is True:
+            schema += "_pending"
+        item_exporter = create_tsdb_exporter(
+            chain,
+            schema,
+            target_db_url,
+            workers=target_db_workers,
+            pool_size=target_db_workers + 2,
+            print_sql=print_sql,
+        )
 
     if chain_type == "evm":
         web3_provider = ThreadLocalProxy(
