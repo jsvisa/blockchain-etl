@@ -69,6 +69,8 @@ pipenv shell
 
 ```bash
 pip install git+https://github.com/jsvisa/blockchain-etl.git@v${version}
+
+pip install git+https://github.com/jsvisa/blockchain-etl.git@devel
 ```
 
 > or used in Pipfile
