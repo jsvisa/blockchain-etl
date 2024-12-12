@@ -27,7 +27,7 @@ from typing import Dict, Tuple
 import diskcache as dc
 from eth_utils.address import to_checksum_address
 from web3 import Web3
-from web3.exceptions import BadFunctionCallOutput, ContractLogicError
+from web3.exceptions import BadFunctionCallOutput, ContractLogicError, Web3RPCError
 from web3.contract.contract import Contract
 from cachetools import cached, LRUCache
 from threading import Lock
@@ -144,6 +144,7 @@ class EthTokenService(TokenService):
             ignore_errors=(
                 BadFunctionCallOutput,
                 ContractLogicError,
+                Web3RPCError,
                 OverflowError,
                 ValueError,
                 UnicodeDecodeError,
