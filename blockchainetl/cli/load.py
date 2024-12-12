@@ -31,8 +31,8 @@ from blockchainetl.enumeration.entity_type import (
 from blockchainetl.enumeration.chain import Chain
 from blockchainetl.jobs.redis_consumer_group import RedisConsumerGroup
 from blockchainetl.service.redis_stream_service import fmt_redis_key_name
+from blockchainetl.streaming.pandas_utils import save_file_into_table
 from blockchainetl.streaming.postgres_utils import (
-    save_file_into_table,
     ensure_external_load_path,
     external_copy_file_into_redo,
     external_load_files_into_table,
@@ -157,13 +157,13 @@ class Loader:
     def external_copy_into_redo_path(
         self, entity_type: str, redo_path: str, copy_limit: int
     ):
-        cgroup = f"{self.chain}:{self.consumer_group}"
+        cgroup = "{}:{}".format(self.chain, self.consumer_group)
         stream, result, _ = self._stream_result_table_of_entity(entity_type)
         red = redis.from_url(self.redis_url)
 
         def handler(_, __, keyvals: Dict):
             blk, file = self._decode_task(keyvals)
-            result_key = f"{result}:{blk}"
+            result_key = "{result}:{blk}".format(result=result, blk=blk)
 
             # we store the blk in result as sorted-set previously
             # adjusted to use ttl key after 2022.09.22
@@ -192,7 +192,7 @@ class Loader:
         red_cg.consume(handler)
 
     def psycopg_copy_into_postgres(self, entity_type: str):
-        cgroup = f"{self.chain}:{self.consumer_group}"
+        cgroup = "{}:{}".format(self.chain, self.consumer_group)
         stream, result, table = self._stream_result_table_of_entity(entity_type)
         red = redis.from_url(self.redis_url)
 
@@ -205,7 +205,7 @@ class Loader:
                 logging.debug(f"[{entity_type}] blknum: {blk} < {minimum_blknum}")
                 return
 
-            result_key = f"{result}:{blk}"
+            result_key = "{result}:{blk}".format(result=result, blk=blk)
 
             if red.get(result_key) is not None or red.sismember(result, blk):
                 logging.info(f"block: {blk} has handled, skip")

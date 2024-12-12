@@ -5,7 +5,7 @@ from psycopg2.extensions import connection
 
 from blockchainetl.enumeration.chain import Chain
 from blockchainetl.enumeration.entity_type import EntityType, chain_entity_table
-from blockchainetl.streaming.postgres_utils import copy_from_pandas_df
+from blockchainetl.streaming.pandas_utils import copy_from_pandas_df
 
 
 def easy_df_saver(
