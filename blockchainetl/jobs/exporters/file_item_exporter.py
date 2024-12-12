@@ -2,7 +2,7 @@ import os
 import logging
 import pandas as pd
 from itertools import groupby
-from datetime import datetime
+from datetime import datetime, timezone
 from time import time
 import concurrent.futures
 
@@ -59,13 +59,13 @@ class FileItemExporter:
         st = items[0].get("timestamp", items[0].get("block_timestamp"))
         if st is None:
             raise ValueError(
-                f"the field `timestamp`/`block_timestamp` not given for items: {items}"
+                f"the field timestamp/block_timestamp not given for items: {items}"
             )
 
         base_dir = None
         if self._base_dir is not None:
             # use the time of the first row of this batch
-            st_day = datetime.utcfromtimestamp(st).strftime("%Y-%m-%d")
+            st_day = datetime.fromtimestamp(st, timezone.utc).strftime("%Y-%m-%d")
             base_dir = os.path.join(self._base_dir, st_day)
             if not base_dir.startswith("s3://"):
                 os.makedirs(base_dir, exist_ok=True)
@@ -134,7 +134,7 @@ class FileItemExporter:
         if len(df) > 1024:
             logging.info(
                 f"PERF save file={output} lines=#{len(df)} "
-                f"@to_df={time_elapsed(st0,st1)}s @to_file={time_elapsed(st1,st2)}s"
+                f"@to_df={time_elapsed(st0, st1)}s @to_file={time_elapsed(st1, st2)}s"
             )
 
         if self._df_saver is not None:
