@@ -2,12 +2,11 @@ import logging
 import click
 import redis
 import time
+from datetime import datetime, timedelta, timezone
 from threading import Thread
-
 
 from blockchainetl.cli.utils import global_click_options
 from blockchainetl.enumeration.entity_type import EntityType, parse_entity_types
-from datetime import datetime, timedelta
 from ethereumetl.providers.auto import new_web3_provider
 from ethereumetl.service.eth_service import EthService
 from blockchainetl.service.redis_stream_service import fmt_redis_key_name
@@ -74,14 +73,14 @@ def srem_entity(chain, redis_url, min_blknum, max_blknum, prefixes, entity_type)
 )
 @click.option(
     "--start-date",
-    default=(datetime.utcnow() - timedelta(days=600)).strftime("%Y-%m-%d"),
+    default=(datetime.now(timezone.utc) - timedelta(days=600)).strftime("%Y-%m-%d"),
     type=lambda d: datetime.strptime(d, "%Y-%m-%d"),
     show_default=True,
     help="Start datetime(included)",
 )
 @click.option(
     "--end-date",
-    default=(datetime.utcnow() - timedelta(days=180)).strftime("%Y-%m-%d"),
+    default=(datetime.now(timezone.utc) - timedelta(days=180)).strftime("%Y-%m-%d"),
     type=lambda d: datetime.strptime(d, "%Y-%m-%d"),
     show_default=True,
     help="End datetime(excluded)",

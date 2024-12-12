@@ -24,6 +24,7 @@
 import logging
 from time import time
 
+from blockchainetl.thread_local_proxy import ThreadLocalProxy
 from blockchainetl.utils import time_elapsed
 from blockchainetl.enumeration.chain import Chain
 from blockchainetl.enumeration.entity_type import EntityType
@@ -39,7 +40,7 @@ from blockchainetl.jobs.exporters.in_memory_item_exporter import InMemoryItemExp
 class BtcStreamerAdapter:
     def __init__(
         self,
-        bitcoin_rpc: BitcoinRpc,
+        provider_uri: str,
         item_exporter=ConsoleItemExporter(),
         chain=Chain.BITCOIN,
         batch_size=2,
@@ -48,7 +49,7 @@ class BtcStreamerAdapter:
         entity_types=tuple(EntityType.ALL_FOR_ETL),
         cache_path=None,
     ):
-        self.bitcoin_rpc = bitcoin_rpc
+        self.bitcoin_rpc = ThreadLocalProxy(lambda: BitcoinRpc(provider_uri))
         self.chain = chain
         self.item_exporter = item_exporter
         self.batch_size = batch_size

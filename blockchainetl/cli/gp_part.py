@@ -3,7 +3,7 @@ import psycopg2 as psycopg
 import pandas as pd
 import logging
 from time import time
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 
 from blockchainetl.utils import time_elapsed
 from blockchainetl.enumeration.entity_type import EntityType, chain_entity_table
@@ -33,7 +33,7 @@ from blockchainetl.misc.psycopg import set_psycopg2_waitable
 @click.option(
     "-e",
     "--end-date",
-    default=datetime.utcnow().date(),
+    default=datetime.now(timezone.utc).date(),
     show_default=True,
     help="End datetime(excluded)",
 )

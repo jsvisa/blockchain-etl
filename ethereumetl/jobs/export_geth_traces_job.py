@@ -20,8 +20,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import json
-
 from blockchainetl.executors.batch_work_executor import BatchWorkExecutor
 from ethereumetl.json_rpc_requests import generate_trace_block_by_number_json_rpc
 from blockchainetl.jobs.base_job import BaseJob
@@ -64,9 +62,7 @@ class ExportGethTracesJob(BaseJob):
         trace_block_rpc = list(
             generate_trace_block_by_number_json_rpc(block_number_batch)
         )
-        response = self.batch_web3_provider.make_batch_request(
-            json.dumps(trace_block_rpc)
-        )
+        response = self.batch_web3_provider.make_batch_request(trace_block_rpc)
 
         for response_item in response:
             block_number = response_item.get("id")

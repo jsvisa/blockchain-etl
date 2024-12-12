@@ -1,8 +1,6 @@
 import redis
 import click
-from bitcoinetl.rpc.bitcoin_rpc import BitcoinRpc
 from bitcoinetl.streaming.btc_streamer_adapter import BtcStreamerAdapter
-from blockchainetl.thread_local_proxy import ThreadLocalProxy
 from blockchainetl.streaming.streamer import Streamer
 from blockchainetl.enumeration.entity_type import EntityType
 
@@ -169,7 +167,7 @@ def export(
         )
 
     streamer_adapter = BtcStreamerAdapter(
-        bitcoin_rpc=ThreadLocalProxy(lambda: BitcoinRpc(provider_uri)),
+        provider_uri=provider_uri,
         item_exporter=FileItemExporter(
             output,
             tidb_url,

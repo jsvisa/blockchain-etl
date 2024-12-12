@@ -20,7 +20,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import json
 import logging
 from collections import defaultdict
 
@@ -140,9 +139,7 @@ class ExportTracesJob(BaseJob):
         )
         if self.batch_size == 1:
             trace_block_rpc = trace_block_rpc[0]
-        response = self.batch_web3_provider.make_batch_request(
-            json.dumps(trace_block_rpc)
-        )
+        response = self.batch_web3_provider.make_batch_request(trace_block_rpc)
 
         if self.batch_size == 1:
             response = response[0]
@@ -229,9 +226,7 @@ class ExportTracesJob(BaseJob):
         )
         if self.batch_size == 1:
             trace_block_rpc = trace_block_rpc[0]
-        response = self.batch_web3_provider.make_batch_request(
-            json.dumps(trace_block_rpc)
-        )
+        response = self.batch_web3_provider.make_batch_request(trace_block_rpc)
         if self.batch_size == 1:
             response = response[0]
 
@@ -252,14 +247,12 @@ class ExportTracesJob(BaseJob):
         )
         if self.batch_size == 1:
             trace_block_rpc = trace_block_rpc[0]
-        response = self.batch_web3_provider.make_batch_request(
-            json.dumps(trace_block_rpc)
-        )
+        response = self.batch_web3_provider.make_batch_request(trace_block_rpc)
 
         # flatten block results
         # Arbitrum's JSONRPC is not standard, it's result is List(standard is Dict)
         if self.batch_size == 1:
-            json_traces: List[Dict] = rpc_response_to_result(response)
+            json_traces = rpc_response_to_result(response)
         else:
             json_traces = []
             for r in response:
@@ -272,7 +265,7 @@ class ExportTracesJob(BaseJob):
 
     def _export_batch_geth_by_txhash(
         self, block_number_batch: List[int]
-    ) -> Generator[Tuple[int, Dict], None, None]:
+    ) -> Generator[Tuple[int, List[Dict]], None, None]:
         block_traces = defaultdict(list)
         txhashes = dict()
         for blknum in block_number_batch:
@@ -290,9 +283,7 @@ class ExportTracesJob(BaseJob):
         trace_hash_rpc = list(
             generate_trace_transaction_json_rpc(list(txhashes.keys()))
         )
-        response = self.batch_web3_provider.make_batch_request(
-            json.dumps(trace_hash_rpc)
-        )
+        response = self.batch_web3_provider.make_batch_request(trace_hash_rpc)
         ignore_error = env.GETH_TRACE_TRANSACTION_IGNORE_ERROR
         for response_item in response:
             txhash = response_item.get("id")
@@ -316,15 +307,13 @@ class ExportTracesJob(BaseJob):
 
     def _export_batch_geth_by_block(
         self, block_number_batch: List[int]
-    ) -> Generator[Tuple[int, Dict], None, None]:
+    ) -> Generator[Tuple[int, List[Dict]], None, None]:
         trace_block_rpc = list(
             generate_trace_block_by_number_json_rpc(block_number_batch)
         )
         if self.batch_size == 1:
             trace_block_rpc = trace_block_rpc[0]
-        response = self.batch_web3_provider.make_batch_request(
-            json.dumps(trace_block_rpc)
-        )
+        response = self.batch_web3_provider.make_batch_request(trace_block_rpc)
         if self.batch_size == 1:
             response = [response]
 
@@ -336,7 +325,7 @@ class ExportTracesJob(BaseJob):
                 trace = tx_trace.get("result")
                 if trace is None:
                     msg = (
-                        f"Geth trace for block:{blknum} txpos:{tx_index} is nil, "
+                        f"Geth trace for block: {blknum} txpos: {tx_index} is nil, "
                         f"maybe timeout, raw message: {tx_trace}"
                     )
                     # Optimistic's trace block 0x3D9 returns error:

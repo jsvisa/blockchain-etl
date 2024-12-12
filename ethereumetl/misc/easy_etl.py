@@ -1,9 +1,7 @@
 from typing import Optional, Union, Tuple
-from blockchainetl.thread_local_proxy import ThreadLocalProxy
 from blockchainetl.enumeration.chain import Chain
 from blockchainetl.enumeration.entity_type import EntityType
 from blockchainetl.jobs.exporters.file_item_exporter import FileItemExporter
-from ethereumetl.providers.auto import get_provider_from_uri
 from ethereumetl.streaming.eth_streamer_adapter import EthStreamerAdapter
 
 
@@ -26,9 +24,7 @@ def easy_etl(
         chain, output, output_file=output_file, df_saver=df_saver
     )
     streamer_adapter = EthStreamerAdapter(
-        batch_web3_provider=ThreadLocalProxy(
-            lambda: get_provider_from_uri(provider_uri, batch=True)
-        ),
+        provider_uri=provider_uri,
         item_exporter=item_exporter,
         chain=chain,
         batch_size=batch_size,

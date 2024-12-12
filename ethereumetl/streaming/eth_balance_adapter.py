@@ -3,7 +3,7 @@ import redis
 import json
 import pypeln as pl
 from time import time
-from datetime import datetime
+from datetime import datetime, timezone
 
 from sqlalchemy import create_engine, Table
 from sqlalchemy.engine import Engine
@@ -22,7 +22,6 @@ from blockchainetl.misc.pandas_extra import partition_rank, vsum
 from blockchainetl.enumeration.chain import Chain
 from blockchainetl.enumeration.entity_type import EntityType
 from blockchainetl.jobs.exporters.console_item_exporter import ConsoleItemExporter
-from ethereumetl.providers.rpc import BatchHTTPProvider
 from ethereumetl.streaming.enrich import enrich_transactions
 from ethereumetl.streaming.postgres_tables import HISTORY_BALANCES
 from ethereumetl.misc.eth_extract_balance import (
@@ -108,7 +107,7 @@ class EthBalanceAdapter(EthBaseAdapter):
         source_db_url: str,
         target_db_url: str,
         target_dbschema: str,
-        batch_web3_provider: BatchHTTPProvider,
+        provider_uri: str,
         item_exporter=ConsoleItemExporter(),
         chain=Chain.ETHEREUM,
         batch_size=2,
@@ -149,7 +148,7 @@ class EthBalanceAdapter(EthBaseAdapter):
         self.async_enrich_balance = async_enrich_balance
 
         EthBaseAdapter.__init__(
-            self, chain, batch_web3_provider, item_exporter, batch_size, max_workers
+            self, chain, provider_uri, item_exporter, batch_size, max_workers
         )
 
     def _open(self):
@@ -262,8 +261,12 @@ class EthBalanceAdapter(EthBaseAdapter):
             max_st: int = max(b["timestamp"] for b in blocks)
             block_txs = sum(e["transaction_count"] for e in blocks)
             return (
-                datetime.utcfromtimestamp(min_st).strftime("%Y-%m-%d %H:%M:%S"),
-                datetime.utcfromtimestamp(max_st).strftime("%Y-%m-%d %H:%M:%S"),
+                datetime.fromtimestamp(min_st, timezone.utc).strftime(
+                    "%Y-%m-%d %H:%M:%S"
+                ),
+                datetime.fromtimestamp(max_st, timezone.utc).strftime(
+                    "%Y-%m-%d %H:%M:%S"
+                ),
                 block_txs,
                 txs,
             )

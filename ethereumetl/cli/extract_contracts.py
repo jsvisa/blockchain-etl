@@ -2,7 +2,7 @@ import os
 import logging
 import click
 import pandas as pd
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from sqlalchemy import create_engine
 from ethereumetl.jobs.exporters.contracts_item_exporter import contracts_item_exporter
 from ethereumetl.jobs.extract_contracts_job import ExtractContractsJob
@@ -33,14 +33,14 @@ from ethereumetl.jobs.extract_contracts_job import ExtractContractsJob
 @click.option(
     "-s",
     "--start-date",
-    default=(datetime.utcnow() - timedelta(days=1)).date(),
+    default=(datetime.now(timezone.utc) - timedelta(days=1)).date(),
     show_default=True,
     help="Start datetime(included)",
 )
 @click.option(
     "-e",
     "--end-date",
-    default=datetime.utcnow().date(),
+    default=datetime.now(timezone.utc).date(),
     show_default=True,
     help="End datetime(excluded)",
 )

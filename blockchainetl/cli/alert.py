@@ -3,7 +3,6 @@ import logging
 import click
 from web3 import HTTPProvider, Web3
 
-from bitcoinetl.rpc.bitcoin_rpc import BitcoinRpc
 from bitcoinetl.streaming.btc_streamer_adapter import BtcStreamerAdapter
 from blockchainetl.alert import rule_udf
 from blockchainetl.alert.rule_set import RuleSets
@@ -19,8 +18,6 @@ from blockchainetl.jobs.exporters.alert_exporter import AlertExporter
 from blockchainetl.service.simple_price_service import SimplePriceService
 from blockchainetl.service.price_service import PriceService
 from blockchainetl.streaming.streamer import Streamer
-from blockchainetl.thread_local_proxy import ThreadLocalProxy
-from ethereumetl.providers.auto import get_provider_from_uri
 from ethereumetl.service.eth_token_service import EthTokenService
 from ethereumetl.streaming.eth_streamer_adapter import EthStreamerAdapter
 
@@ -218,9 +215,7 @@ def alert(
 
     if chain in Chain.ALL_ETHEREUM_FORKS:
         streamer_adapter = EthStreamerAdapter(
-            batch_web3_provider=ThreadLocalProxy(
-                lambda: get_provider_from_uri(provider_uri, batch=True)
-            ),
+            provider_uri=provider_uri,
             item_exporter=alert_exporter,
             chain=chain,
             batch_size=batch_size,
@@ -236,7 +231,7 @@ def alert(
         )
     elif chain in Chain.ALL_BITCOIN_FORKS:
         streamer_adapter = BtcStreamerAdapter(
-            bitcoin_rpc=ThreadLocalProxy(lambda: BitcoinRpc(provider_uri)),
+            provider_uri=provider_uri,
             item_exporter=alert_exporter,
             chain=chain,
             enable_enrich=True,

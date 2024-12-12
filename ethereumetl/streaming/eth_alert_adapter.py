@@ -1,7 +1,7 @@
 import logging
 from time import time
 from typing import Tuple
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 
 from sqlalchemy.engine import Engine
@@ -11,7 +11,6 @@ from blockchainetl.utils import time_elapsed
 from blockchainetl.jobs.exporters.console_item_exporter import ConsoleItemExporter
 from blockchainetl.enumeration.entity_type import EntityType
 from blockchainetl.enumeration.chain import Chain
-from ethereumetl.providers.rpc import BatchHTTPProvider
 from ethereumetl.misc.eth_alert import (
     READ_BLOCK_TEMPLATE,
     READ_TX_TEMPLATE,
@@ -27,7 +26,7 @@ class EthAlertAdapter(EthBaseAdapter):
     def __init__(
         self,
         engine: Engine,
-        batch_web3_provider: BatchHTTPProvider,
+        provider_uri: str,
         item_exporter=ConsoleItemExporter(),
         chain=Chain.ETHEREUM,
         batch_size=100,
@@ -42,12 +41,12 @@ class EthAlertAdapter(EthBaseAdapter):
         self.print_sql = print_sql
 
         EthBaseAdapter.__init__(
-            self, chain, batch_web3_provider, item_exporter, batch_size, max_workers
+            self, chain, provider_uri, item_exporter, batch_size, max_workers
         )
 
     @cached(cache=TTLCache(maxsize=16, ttl=10))
     def get_current_block_number(self) -> Tuple[int, int]:
-        start_date = datetime.utcnow() - timedelta(days=10)
+        start_date = datetime.now(timezone.utc) - timedelta(days=10)
         row = self.engine.execute(
             f"SELECT blknum, extract(epoch from block_timestamp)::int AS timestamp "
             f"FROM {self._schema()}.blocks "
@@ -111,8 +110,8 @@ class EthAlertAdapter(EthBaseAdapter):
         return entity_type in self.entity_types
 
     def _export_blocks(self, start_block, end_block):
-        st_timestamp = datetime.utcnow() - timedelta(days=60)
-        et_timestamp = datetime.utcnow() + timedelta(days=1)
+        st_timestamp = datetime.now(timezone.utc) - timedelta(days=60)
+        et_timestamp = datetime.now(timezone.utc) + timedelta(days=1)
         blocks = self._read_sql(
             READ_BLOCK_TEMPLATE, start_block, end_block, st_timestamp, et_timestamp
         )

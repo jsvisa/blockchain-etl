@@ -12,7 +12,6 @@ from blockchainetl.utils import time_elapsed
 from blockchainetl.jobs.exporters.console_item_exporter import ConsoleItemExporter
 from blockchainetl.enumeration.entity_type import EntityType
 from blockchainetl.enumeration.chain import Chain
-from ethereumetl.providers.rpc import BatchHTTPProvider
 from ethereumetl.streaming.enrich import enrich_logs
 from blockchainetl.service.price_service import PriceService
 from blockchainetl.service.token_service import TokenService
@@ -35,7 +34,7 @@ from .eth_base_adapter import EthBaseAdapter
 class EthNftOrderbookAdapter(EthBaseAdapter):
     def __init__(
         self,
-        batch_web3_provider: BatchHTTPProvider,
+        provider_uri: str,
         item_exporter=ConsoleItemExporter(),
         chain=Chain.ETHEREUM,
         batch_size=100,
@@ -59,7 +58,7 @@ class EthNftOrderbookAdapter(EthBaseAdapter):
         }
         self.source_db_url = source_db_url
         EthBaseAdapter.__init__(
-            self, chain, batch_web3_provider, item_exporter, batch_size, max_workers
+            self, chain, provider_uri, item_exporter, batch_size, max_workers
         )
 
     def _open(self):

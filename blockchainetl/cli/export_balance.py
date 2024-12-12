@@ -3,7 +3,6 @@ import click
 
 from blockchainetl.cli.utils import pick_random_provider_uri, evm_chain_options
 from blockchainetl.streaming.streamer import Streamer
-from blockchainetl.thread_local_proxy import ThreadLocalProxy
 from blockchainetl.enumeration.entity_type import EntityType, parse_entity_types
 from blockchainetl.jobs.exporters.postgres_item_exporter import PostgresItemExporter
 from blockchainetl.jobs.exporters.converters import NanToNoneItemConverter
@@ -14,7 +13,6 @@ from ethereumetl.streaming.postgres_tables import (
     TOKEN_LATEST_BALANCES,
 )
 from ethereumetl.streaming.postgres_hooks import upsert_latest_balances
-from ethereumetl.providers.auto import get_provider_from_uri
 
 
 @click.command(context_settings=dict(help_option_names=["-h", "--help"]))
@@ -243,9 +241,7 @@ def export_balance(
     )
 
     streamer_adapter = EthTokenBalanceAdapter(
-        batch_web3_provider=ThreadLocalProxy(
-            lambda: get_provider_from_uri(provider_uri, batch=True)
-        ),
+        provider_uri=provider_uri,
         target_db_url=target_db_url,
         target_dbschema=chain,
         item_exporter=item_exporter,

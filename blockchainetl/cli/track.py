@@ -9,7 +9,6 @@ from blockchainetl.cli.utils import (
     pick_random_provider_uri,
     str2bool,
 )
-from blockchainetl.thread_local_proxy import ThreadLocalProxy
 from blockchainetl.streaming.streamer import Streamer, read_last_synced_block
 from blockchainetl.enumeration.chain import Chain
 from blockchainetl.enumeration.entity_type import EntityType, parse_entity_types
@@ -20,10 +19,8 @@ from blockchainetl.track.track_oracle import TrackOracle
 from blockchainetl.service.label_service import LabelService
 from blockchainetl.service.profile_service import ProfileService
 
-from bitcoinetl.rpc.bitcoin_rpc import BitcoinRpc
 from bitcoinetl.streaming.btc_streamer_adapter import BtcStreamerAdapter
 
-from ethereumetl.providers.auto import get_provider_from_uri
 from ethereumetl.streaming.eth_streamer_adapter import EthStreamerAdapter
 from ethereumetl.service.eth_token_service import EthTokenService
 
@@ -226,9 +223,7 @@ def track(
 
     if chain in Chain.ALL_ETHEREUM_FORKS:
         streamer_adapter = EthStreamerAdapter(
-            batch_web3_provider=ThreadLocalProxy(
-                lambda: get_provider_from_uri(provider_uri, batch=True)
-            ),
+            provider_uri=provider_uri,
             item_exporter=track_exporter,
             chain=chain,
             batch_size=batch_size,
@@ -244,7 +239,7 @@ def track(
         )
     elif chain in Chain.ALL_BITCOIN_FORKS:
         streamer_adapter = BtcStreamerAdapter(
-            bitcoin_rpc=ThreadLocalProxy(lambda: BitcoinRpc(provider_uri)),
+            provider_uri=provider_uri,
             item_exporter=track_exporter,
             chain=chain,
             enable_enrich=True,

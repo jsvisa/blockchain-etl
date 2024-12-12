@@ -6,7 +6,6 @@ from web3 import Web3, HTTPProvider
 from sqlalchemy import create_engine
 
 from blockchainetl.cli.utils import evm_chain_options, pick_random_provider_uri
-from blockchainetl.thread_local_proxy import ThreadLocalProxy
 from blockchainetl.streaming.streamer import Streamer, read_last_synced_block
 from blockchainetl.enumeration.chain import Chain
 from blockchainetl.enumeration.entity_type import EntityType, parse_entity_types
@@ -18,7 +17,6 @@ from blockchainetl.service.label_service import LabelService
 from blockchainetl.service.profile_service import ProfileService
 from blockchainetl.service.price_service import PriceService
 
-from ethereumetl.providers.auto import get_provider_from_uri
 from ethereumetl.service.eth_token_service import EthTokenService
 from ethereumetl.streaming.eth_alert_adapter import EthAlertAdapter
 
@@ -241,9 +239,7 @@ def track2(
     )
     streamer_adapter = EthAlertAdapter(
         engine=engine,
-        batch_web3_provider=ThreadLocalProxy(
-            lambda: get_provider_from_uri(provider_uri, batch=True)
-        ),
+        provider_uri=provider_uri,
         item_exporter=track_exporter,
         chain=chain,
         batch_size=batch_size,

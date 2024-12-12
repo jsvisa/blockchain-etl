@@ -45,7 +45,7 @@ FILTER_ADDRESS_LIMIT = 1000
 class EthNftTokenidAdapter(EthBaseAdapter):
     def __init__(
         self,
-        batch_web3_provider,
+        provider_uri: str,
         erc721_tokens: Optional[Dict[str, Dict]] = None,
         erc1155_tokens: Optional[Dict[str, Dict]] = None,
         item_exporter=ConsoleItemExporter(),
@@ -69,7 +69,6 @@ class EthNftTokenidAdapter(EthBaseAdapter):
         self.erc1155_tokens = erc1155_tokens or dict()
         self.erc721_token_addresses = set(self.erc721_tokens.keys())
         self.erc1155_token_addresses = set(self.erc1155_tokens.keys())
-        self.batch_web3_provider = batch_web3_provider
         self.batch_id = batch_id
         self.smooth_mode = smooth_mode
         self.smooth_exclude_tokens = smooth_exclude_tokens or set()
@@ -111,7 +110,7 @@ class EthNftTokenidAdapter(EthBaseAdapter):
         self.entity_types = entity_types
         self.log_mapper = EthLogMapper()
         EthBaseAdapter.__init__(
-            self, chain, batch_web3_provider, item_exporter, batch_size, max_workers
+            self, chain, provider_uri, item_exporter, batch_size, max_workers
         )
 
     def _open(self):

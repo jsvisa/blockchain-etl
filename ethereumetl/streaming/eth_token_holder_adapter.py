@@ -1,7 +1,7 @@
 import logging
 import pandas as pd
 from time import time
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional, Set, List, Dict
 from eth_utils.address import to_checksum_address
 
@@ -10,7 +10,6 @@ from blockchainetl.misc.pandas_extra import partition_rank, vsum
 from blockchainetl.jobs.exporters.console_item_exporter import ConsoleItemExporter
 from blockchainetl.enumeration.entity_type import EntityType
 from blockchainetl.enumeration.chain import Chain
-from ethereumetl.providers.rpc import BatchHTTPProvider
 from ethereumetl.streaming.extractor import (
     extract_token_transfers,
     extract_erc1155_transfers,
@@ -41,7 +40,7 @@ IGNORE_ADDRESSES = {
 class EthTokenHolderAdapter(EthBaseAdapter):
     def __init__(
         self,
-        batch_web3_provider: BatchHTTPProvider,
+        provider_uri: str,
         item_exporter=ConsoleItemExporter(),
         chain=Chain.ETHEREUM,
         batch_size=100,
@@ -60,7 +59,7 @@ class EthTokenHolderAdapter(EthBaseAdapter):
         self.exclude_tokens = exclude_tokens or {}
 
         EthBaseAdapter.__init__(
-            self, chain, batch_web3_provider, item_exporter, batch_size, max_workers
+            self, chain, provider_uri, item_exporter, batch_size, max_workers
         )
 
     def _open(self):
@@ -160,7 +159,7 @@ class EthTokenHolderAdapter(EthBaseAdapter):
     def _to_st_day(self, value):
         if pd.isna(value):
             return None
-        return datetime.utcfromtimestamp(value).strftime("%Y-%m-%d")
+        return datetime.fromtimestamp(value, timezone.utc).strftime("%Y-%m-%d")
 
     def _build_topics(self):
         # we need those events only: Transfer/SingleTransfer/BatchTransfer

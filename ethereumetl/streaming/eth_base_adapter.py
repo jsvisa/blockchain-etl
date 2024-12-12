@@ -4,7 +4,8 @@ from cachetools import cached, TTLCache
 from blockchainetl.enumeration.entity_type import EntityType
 from blockchainetl.jobs.exporters.console_item_exporter import ConsoleItemExporter
 from blockchainetl.jobs.exporters.in_memory_item_exporter import InMemoryItemExporter
-from ethereumetl.providers.rpc import BatchHTTPProvider
+from blockchainetl.thread_local_proxy import ThreadLocalProxy
+from ethereumetl.providers.auto import get_provider_from_uri
 from ethereumetl.providers.auto import new_web3_provider
 from ethereumetl.jobs.export_blocks_job import ExportBlocksJob
 from ethereumetl.jobs.export_logs_job import ExportLogsJob
@@ -15,14 +16,16 @@ class EthBaseAdapter:
     def __init__(
         self,
         chain: str,
-        batch_web3_provider: BatchHTTPProvider,
+        provider_uri: str,
         item_exporter=ConsoleItemExporter(),
         batch_size=5,
         max_workers=5,
     ):
         self.chain = chain
-        self.web3 = new_web3_provider(batch_web3_provider, chain)
-        self.batch_web3_provider = batch_web3_provider
+        self.web3 = new_web3_provider(provider_uri, chain)
+        self.batch_web3_provider = ThreadLocalProxy(
+            lambda: get_provider_from_uri(provider_uri, batch=True)
+        )
         self.item_exporter = item_exporter
         self.batch_size = batch_size
         self.max_workers = max_workers

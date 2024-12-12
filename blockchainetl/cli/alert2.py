@@ -12,8 +12,6 @@ from blockchainetl.enumeration.entity_type import EntityType, parse_entity_types
 from blockchainetl.jobs.exporters.alert_exporter import AlertExporter
 from blockchainetl.service.label_service import LabelService
 from blockchainetl.streaming.streamer import Streamer
-from blockchainetl.thread_local_proxy import ThreadLocalProxy
-from ethereumetl.providers.auto import get_provider_from_uri
 from ethereumetl.service.eth_token_service import EthTokenService
 from ethereumetl.streaming.eth_alert_adapter import EthAlertAdapter
 from blockchainetl.service.simple_price_service import SimplePriceService
@@ -218,9 +216,7 @@ def alert2(
 
     streamer_adapter = EthAlertAdapter(
         engine=engine,
-        batch_web3_provider=ThreadLocalProxy(
-            lambda: get_provider_from_uri(provider_uri, batch=True)
-        ),
+        provider_uri=provider_uri,
         item_exporter=alert_exporter,
         chain=chain,
         batch_size=batch_size,

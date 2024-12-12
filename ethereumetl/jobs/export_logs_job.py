@@ -1,4 +1,3 @@
-import json
 from typing import Optional, List, Union
 
 from blockchainetl.executors.batch_work_executor import BatchWorkExecutor
@@ -47,7 +46,7 @@ class ExportLogsJob(BaseJob):
         logs_rpc = generate_get_log_by_number_json_rpc(
             from_block, to_block, self.topics, self.address
         )
-        response = self.batch_web3_provider.make_batch_request(json.dumps(logs_rpc))
+        response = self.batch_web3_provider.make_batch_request(logs_rpc)
         results = rpc_response_to_result(response)
         logs = (self.log_mapper.json_dict_to_log(result) for result in results)
 

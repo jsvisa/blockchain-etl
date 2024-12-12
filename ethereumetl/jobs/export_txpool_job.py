@@ -1,5 +1,3 @@
-import json
-
 from blockchainetl.utils import rpc_response_batch_to_results
 from blockchainetl.jobs.base_job import BaseJob
 from ethereumetl.json_rpc_requests import generate_get_txpool_content_json_rpc
@@ -23,7 +21,7 @@ class ExportTxpoolJob(BaseJob):
     def _export_tx_pools(self):
         tx_pools_rpc = generate_get_txpool_content_json_rpc()
 
-        response = self.provider.make_batch_request(json.dumps(tx_pools_rpc))
+        response = self.provider.make_batch_request(tx_pools_rpc)
         result = list(rpc_response_batch_to_results(response))[0]
         tx_pools = self.tx_pool_mapper.json_dict_to_txpools(result)
         for tx_pool in tx_pools:

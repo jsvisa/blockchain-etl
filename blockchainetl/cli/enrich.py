@@ -1,5 +1,5 @@
 import click
-from datetime import datetime
+from datetime import datetime, timezone
 
 from blockchainetl.cli.utils import global_click_options
 from blockchainetl.enumeration.chain import Chain
@@ -36,7 +36,7 @@ from blockchainetl.misc.psycopg import set_psycopg2_waitable
 @click.option(
     "-e",
     "--end-date",
-    default=datetime.utcnow().date(),
+    default=datetime.now(timezone.utc).date(),
     show_default=True,
     help="End datetime(excluded)",
 )

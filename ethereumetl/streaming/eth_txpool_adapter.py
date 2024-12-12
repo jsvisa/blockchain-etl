@@ -1,7 +1,7 @@
 import logging
 
 from time import time
-from datetime import datetime
+from datetime import datetime, timezone
 from blockchainetl.utils import time_elapsed
 from blockchainetl.enumeration.chain import Chain
 from blockchainetl.jobs.exporters.console_item_exporter import ConsoleItemExporter
@@ -36,7 +36,7 @@ class EthTxpoolAdapter:
 
     def export_all(self, _, end_block):
         st0 = time()
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         pools = self._export_tx_pools(end_block, now)
         self.calculate_item_ids(pools)
         st1 = time()

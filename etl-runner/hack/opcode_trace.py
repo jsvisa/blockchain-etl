@@ -24,12 +24,9 @@ from typing import List, Generator, Dict, Union, Tuple
 from blockchainetl.executors.batch_work_executor import BatchWorkExecutor
 from blockchainetl.cli.utils import evm_chain_options, pick_random_provider_uri
 from blockchainetl.jobs.exporters.console_item_exporter import ConsoleItemExporter
-from blockchainetl.thread_local_proxy import ThreadLocalProxy
 from blockchainetl.streaming.streamer import Streamer
 from blockchainetl.utils import rpc_response_batch_to_results, time_elapsed
 
-from ethereumetl.providers.rpc import BatchHTTPProvider
-from ethereumetl.providers.auto import get_provider_from_uri
 from ethereumetl.streaming.eth_streamer_adapter import EthBaseAdapter
 from ethereumetl.json_rpc_requests import generate_json_rpc
 
@@ -87,8 +84,8 @@ def generate_opcode_trace_by_txhash_json_rpc(
 class OpcodeAdapter(EthBaseAdapter):
     def __init__(
         self,
+        provider_uri: str,
         chain: str,
-        batch_web3_provider: BatchHTTPProvider,
         output: str,
         batch_size=5,
         max_workers=5,
@@ -96,7 +93,7 @@ class OpcodeAdapter(EthBaseAdapter):
         self.output = output
         self.batch_work_executor = BatchWorkExecutor(batch_size, max_workers)
         super().__init__(
-            chain, batch_web3_provider, ConsoleItemExporter(), batch_size, max_workers
+            chain, provider_uri, ConsoleItemExporter(), batch_size, max_workers
         )
 
     def export_all(self, start_block: int, end_block: int):
@@ -108,7 +105,7 @@ class OpcodeAdapter(EthBaseAdapter):
     def _export_batch(self, txhashes: List[Tuple[str, int]]):
         txhashes = {e[0]: e[1] for e in txhashes}
         rpc = list(generate_opcode_trace_by_txhash_json_rpc(txhashes))
-        response = self.batch_web3_provider.make_batch_request(json.dumps(rpc))
+        response = self.batch_web3_provider.make_batch_request(rpc)
         results = rpc_response_batch_to_results(response, requests=rpc, with_id=True)
 
         for result, txhash in results:
@@ -244,9 +241,7 @@ def dump(
     logging.info("Using provider: " + provider_uri)
 
     streamer_adapter = OpcodeAdapter(
-        batch_web3_provider=ThreadLocalProxy(
-            lambda: get_provider_from_uri(provider_uri, batch=True)
-        ),
+        provider_uri,
         chain=chain,
         output=output,
         batch_size=batch_size,

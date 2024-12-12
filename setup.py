@@ -39,7 +39,7 @@ setup(
         "click==8.0.3",
         "requests",
         "eth-hash",
-        "web3>=6,<7.0",
+        "web3==7.0.0",
         "pyyaml",
         "sqlalchemy<2.0",
         "jinja2",

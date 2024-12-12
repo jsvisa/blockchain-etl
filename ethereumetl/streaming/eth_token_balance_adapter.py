@@ -23,7 +23,6 @@ from blockchainetl.jobs.exporters.console_item_exporter import ConsoleItemExport
 from blockchainetl.enumeration.entity_type import EntityType
 from blockchainetl.enumeration.chain import Chain
 from ethereumetl.streaming.postgres_tables import TOKEN_LATEST_BALANCES as T
-from ethereumetl.providers.rpc import BatchHTTPProvider
 from ethereumetl.mappers.log_mapper import EthLogMapper
 from ethereumetl.service.eth_token_service import EthTokenService
 from ethereumetl.streaming.extractor import (
@@ -107,7 +106,7 @@ class E:
 class EthTokenBalanceAdapter(EthBaseAdapter):
     def __init__(
         self,
-        batch_web3_provider: BatchHTTPProvider,
+        provider_uri: str,
         target_db_url: str,
         target_dbschema: str,
         item_exporter=ConsoleItemExporter(),
@@ -159,7 +158,7 @@ class EthTokenBalanceAdapter(EthBaseAdapter):
         self.async_enrich_balance = async_enrich_balance
 
         EthBaseAdapter.__init__(
-            self, chain, batch_web3_provider, item_exporter, batch_size, max_workers
+            self, chain, provider_uri, item_exporter, batch_size, max_workers
         )
 
     def _open(self):

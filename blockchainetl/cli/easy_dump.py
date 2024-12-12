@@ -10,17 +10,14 @@ from blockchainetl.cli.utils import (
     pick_random_provider_uri,
     str2bool,
 )
-from blockchainetl.thread_local_proxy import ThreadLocalProxy
 from blockchainetl.streaming.streamer import Streamer
 from blockchainetl.enumeration.chain import Chain
 from blockchainetl.enumeration.entity_type import EntityType
 from blockchainetl.jobs.exporters.file_item_exporter import FileItemExporter
 from blockchainetl.misc.easy_etl import easy_df_saver
-from bitcoinetl.rpc.bitcoin_rpc import BitcoinRpc
 from bitcoinetl.streaming.btc_streamer_adapter import BtcStreamerAdapter
 from bitcoinetl.enumeration.column_type import ColumnType as BtcColumnType
 from ethereumetl.enumeration.column_type import ColumnType as EthColumnType
-from ethereumetl.providers.auto import get_provider_from_uri
 from ethereumetl.streaming.eth_streamer_adapter import EthStreamerAdapter
 
 
@@ -151,7 +148,7 @@ def easy_dump(
     pid_file,
     load_into_db,
 ):
-    """Easy dump all data from full-node's json-rpc to CSV file, and then load into GreenPlum/PostgreSQL."""
+    """Easy dump all data from full-node's json-rpc to CSV file, and then load into PostgreSQL."""
 
     if provider_uri is None:
         raise click.BadParameter(
@@ -185,9 +182,7 @@ def easy_dump(
     item_exporter = FileItemExporter(chain, output, df_saver=df_saver)
     if chain in Chain.ALL_ETHEREUM_FORKS:
         streamer_adapter = EthStreamerAdapter(
-            batch_web3_provider=ThreadLocalProxy(
-                lambda: get_provider_from_uri(provider_uri, batch=True)
-            ),
+            provider_uri=provider_uri,
             item_exporter=item_exporter,
             chain=chain,
             batch_size=batch_size,
@@ -204,7 +199,7 @@ def easy_dump(
         )
     elif chain in Chain.ALL_BITCOIN_FORKS:
         streamer_adapter = BtcStreamerAdapter(
-            bitcoin_rpc=ThreadLocalProxy(lambda: BitcoinRpc(provider_uri)),
+            provider_uri=provider_uri,
             item_exporter=item_exporter,
             chain=chain,
             enable_enrich=enable_enrich,

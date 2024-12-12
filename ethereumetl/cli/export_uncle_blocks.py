@@ -1,6 +1,6 @@
 import os
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import click
 import pandas as pd
@@ -30,14 +30,14 @@ from ethereumetl.providers.auto import get_provider_from_uri
 @click.option(
     "-s",
     "--start-date",
-    default=(datetime.utcnow() - timedelta(days=1)).date(),
+    default=(datetime.now(timezone.utc) - timedelta(days=1)).date(),
     show_default=True,
     help="Start datetime(included)",
 )
 @click.option(
     "-e",
     "--end-date",
-    default=datetime.utcnow().date(),
+    default=datetime.now(timezone.utc).date(),
     show_default=True,
     help="End datetime(excluded)",
 )

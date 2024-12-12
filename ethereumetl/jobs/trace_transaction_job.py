@@ -1,4 +1,3 @@
-import json
 from typing import List
 from web3 import Web3
 
@@ -66,7 +65,7 @@ class TraceTransactionJob(BaseJob):
 
     def _export_geth(self) -> List[EthTrace]:
         trace_tx_rpc = list(generate_trace_transaction_json_rpc([self.txhash]))[0]
-        response = self.batch_web3_provider.make_batch_request(json.dumps(trace_tx_rpc))
+        response = self.batch_web3_provider.make_batch_request(trace_tx_rpc)
 
         result = rpc_response_to_result(response)
         tx_traces = [result]

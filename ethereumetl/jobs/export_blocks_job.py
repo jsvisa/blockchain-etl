@@ -21,8 +21,6 @@
 # SOFTWARE.
 
 
-import json
-
 from blockchainetl.executors.batch_work_executor import BatchWorkExecutor
 from blockchainetl.jobs.base_job import BaseJob
 from ethereumetl.json_rpc_requests import generate_get_block_by_number_json_rpc
@@ -82,7 +80,7 @@ class ExportBlocksJob(BaseJob):
         )
         if self.batch_size == 1:
             blocks_rpc = blocks_rpc[0]
-        response = self.batch_web3_provider.make_batch_request(json.dumps(blocks_rpc))
+        response = self.batch_web3_provider.make_batch_request(blocks_rpc)
         results = rpc_response_batch_to_results(response, requests=blocks_rpc)
         blocks = [self.block_mapper.json_dict_to_block(result) for result in results]
 

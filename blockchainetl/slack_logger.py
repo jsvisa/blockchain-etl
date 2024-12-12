@@ -3,7 +3,7 @@ import json
 import logging
 from typing import Dict, Union, List
 from urllib.parse import urlparse
-from datetime import datetime
+from datetime import datetime, timezone
 from logging.handlers import HTTPHandler
 
 
@@ -100,7 +100,7 @@ class SlackCronFormatter(logging.Formatter):
         ret["title"] = record.name
         ret["ts"] = record.created
         ret["text"] = "Crontab Log\n - Timestamp: `[{}]`\n - Msg: {}".format(
-            datetime.utcnow(), super(SlackCronFormatter, self).format(record)
+            datetime.now(timezone.utc), super(SlackCronFormatter, self).format(record)
         )
         return ret
 

@@ -4,8 +4,6 @@ from collections import defaultdict
 from collections.abc import Callable
 from typing import Set, Optional
 
-from web3 import Web3
-
 from blockchainetl.env import SUPPORT_BLOCK_RECEIPTS
 from blockchainetl.utils import time_elapsed
 from blockchainetl.jobs.exporters.console_item_exporter import ConsoleItemExporter
@@ -13,7 +11,7 @@ from blockchainetl.jobs.exporters.in_memory_item_exporter import InMemoryItemExp
 from blockchainetl.enumeration.entity_type import EntityType
 from blockchainetl.enumeration.chain import Chain
 from ethereumetl.domain.receipt import EthReceipt
-from ethereumetl.providers.rpc import BatchHTTPProvider
+from ethereumetl.providers.auto import get_provider_from_uri, new_web3_provider
 from ethereumetl.jobs.export_receipts_job import ExportReceiptsJob
 from ethereumetl.jobs.export_block_receipts_job import ExportBlockReceiptsJob
 from ethereumetl.jobs.export_traces_job import ExportTracesJob
@@ -45,7 +43,7 @@ from .eth_item_timestamp_calculator import EthItemTimestampCalculator
 class EthStreamerAdapter(EthBaseAdapter):
     def __init__(
         self,
-        batch_web3_provider: BatchHTTPProvider,
+        provider_uri: str,
         item_exporter=ConsoleItemExporter(),
         chain=Chain.ETHEREUM,
         batch_size=100,
@@ -58,7 +56,7 @@ class EthStreamerAdapter(EthBaseAdapter):
         ignore_receipt_missing_error=False,
         enable_enrich=False,
         token_cache_path: Optional[str] = None,
-        trace_provider: Optional[BatchHTTPProvider] = None,
+        trace_provider_uri: Optional[str] = None,
     ):
         if EntityType.ERC721_TRANSFER in entity_types and erc20_token_reader is None:
             raise ValueError(
@@ -77,12 +75,14 @@ class EthStreamerAdapter(EthBaseAdapter):
         self.token_service = None
         if enable_enrich:
             self.token_service = EthTokenService(
-                Web3(batch_web3_provider), cache_path=token_cache_path
+                new_web3_provider(provider_uri), cache_path=token_cache_path
             )
-        self.trace_provider = trace_provider or batch_web3_provider
+        self.trace_provider = (
+            get_provider_from_uri(trace_provider_uri) if trace_provider_uri else None
+        )
 
         EthBaseAdapter.__init__(
-            self, chain, batch_web3_provider, item_exporter, batch_size, max_workers
+            self, chain, provider_uri, item_exporter, batch_size, max_workers
         )
 
     def export_all(self, start_block, end_block):
@@ -338,7 +338,7 @@ class EthStreamerAdapter(EthBaseAdapter):
             start_block=start_block,
             end_block=end_block,
             batch_size=self.batch_size,
-            batch_web3_provider=self.trace_provider,
+            batch_web3_provider=self.trace_provider or self.batch_web3_provider,
             max_workers=self.max_workers,
             item_exporter=exporter,
             include_genesis_traces=self.chain == Chain.ETHEREUM,

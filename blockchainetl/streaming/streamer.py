@@ -24,7 +24,7 @@
 import logging
 import os
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 
 from blockchainetl.streaming.streamer_adapter_stub import StreamerAdapterStub
 from blockchainetl.file_utils import smart_open
@@ -131,7 +131,7 @@ class Streamer:
         blocks_to_sync = max(target_block - last_synced, 0)
 
         if current_timestamp is not None:
-            current_time = datetime.utcfromtimestamp(current_timestamp)
+            current_time = datetime.fromtimestamp(current_timestamp, timezone.utc)
         else:
             current_time = None
 

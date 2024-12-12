@@ -3,7 +3,7 @@ import click
 import pandas as pd
 from time import time
 from typing import Dict, List, Tuple
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from blockchainetl.utils import time_elapsed
 from blockchainetl.cli.utils import (
     global_click_options,
@@ -11,10 +11,9 @@ from blockchainetl.cli.utils import (
     str2bool,
 )
 from blockchainetl.enumeration.chain import Chain
-from blockchainetl.thread_local_proxy import ThreadLocalProxy
 from blockchainetl.enumeration.entity_type import EntityType
 from blockchainetl.streaming.streamer import Streamer
-from ethereumetl.providers.auto import get_provider_from_uri, new_web3_provider
+from ethereumetl.providers.auto import new_web3_provider
 from ethereumetl.service.eth_service import EthService
 from ethereumetl.streaming.eth_check_autofix_adapter import EthCheckAutofixAdapter
 from ethereumetl.jobs.checkers import Checker
@@ -88,14 +87,14 @@ CHECKER_CTORS: Dict[str, "Checker"] = {
 @click.option(
     "-s",
     "--start-date",
-    default=(datetime.utcnow() - timedelta(days=1)).date(),
+    default=(datetime.now(timezone.utc) - timedelta(days=1)).date(),
     show_default=True,
     help="Start datetime(included)",
 )
 @click.option(
     "-e",
     "--end-date",
-    default=datetime.utcnow().date(),
+    default=datetime.now(timezone.utc).date(),
     show_default=True,
     help="End datetime(excluded)",
 )
@@ -261,9 +260,7 @@ def gp_autofix(
         streamer_adapter = EthCheckAutofixAdapter(
             chain,
             checkers=checkers,
-            batch_web3_provider=ThreadLocalProxy(
-                lambda: get_provider_from_uri(provider_uri, batch=True)
-            ),
+            provider_uri=provider_uri,
             batch_size=batch_size,
             max_workers=max_workers,
             dryrun=dryrun,

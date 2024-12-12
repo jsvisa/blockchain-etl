@@ -9,12 +9,10 @@ from blockchainetl.cli.utils import (
     pick_random_provider_uri,
     str2bool,
 )
-from blockchainetl.thread_local_proxy import ThreadLocalProxy
 from blockchainetl.streaming.streamer import write_last_synced_block
 from blockchainetl.enumeration.entity_type import EntityType, parse_entity_types
 from blockchainetl.jobs.exporters.item_exporter_builder import create_tsdb_exporter
 
-from ethereumetl.providers.auto import get_provider_from_uri
 from ethereumetl.streaming.eth_reorg_adapter import EthReorgAdapter
 from ethereumetl.streaming.utils import build_erc20_token_reader
 
@@ -43,7 +41,7 @@ from ethereumetl.streaming.utils import build_erc20_token_reader
     default=2,
     show_default=True,
     type=int,
-    help="The number of blocks to lag behind the network, lag for more blocks to ensure dump is ready",
+    help="The number of blocks to lag behind the network.",
 )
 @click.option(
     "-p",
@@ -203,9 +201,7 @@ def reorg(
     reorg_adapter = EthReorgAdapter(
         target_schema=schema,
         target_db_url=target_db_url,
-        batch_web3_provider=ThreadLocalProxy(
-            lambda: get_provider_from_uri(provider_uri, batch=True)
-        ),
+        provider_uri=provider_uri,
         item_exporter=item_exporter,
         chain=chain,
         batch_size=batch_size,

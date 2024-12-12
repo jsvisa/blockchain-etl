@@ -5,7 +5,6 @@ import click
 from blockchainetl.enumeration.chain import Chain
 from blockchainetl.cli.utils import pick_random_provider_uri, global_click_options
 from blockchainetl.streaming.streamer import Streamer
-from blockchainetl.thread_local_proxy import ThreadLocalProxy
 from blockchainetl.enumeration.entity_type import EntityType, parse_entity_types
 from blockchainetl.jobs.exporters.postgres_item_exporter import PostgresItemExporter
 from blockchainetl.jobs.exporters.converters import NanToNoneItemConverter
@@ -15,7 +14,6 @@ from ethereumetl.streaming import postgres_tables as eth_table
 from ethereumetl.streaming.postgres_hooks import (
     upsert_latest_balances as eth_upsert_latest_balances,
 )
-from ethereumetl.providers.auto import get_provider_from_uri
 
 from bitcoinetl.rpc.bitcoin_rpc import BitcoinRpc
 from bitcoinetl.streaming.btc_balance_adapter import BtcBalanceAdapter
@@ -255,9 +253,7 @@ def extract_balance(
 
     if chain in Chain.ALL_ETHEREUM_FORKS:
         streamer_adapter = EthBalanceAdapter(
-            batch_web3_provider=ThreadLocalProxy(
-                lambda: get_provider_from_uri(provider_uri, batch=True)
-            ),
+            provider_uri=provider_uri,
             source_db_url=source_db_url,
             target_db_url=target_db_url,
             target_dbschema=chain,

@@ -1,6 +1,6 @@
 import os
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from time import time
 
 import click
@@ -31,7 +31,7 @@ from ethereumetl.cli.utils import validate_and_read_tokens
 @click.option(
     "-s",
     "--st-day",
-    default=str((datetime.utcnow() - timedelta(days=1)).date()),
+    default=str((datetime.now(timezone.utc) - timedelta(days=1)).date()),
     type=click.DateTime(["%Y-%m-%d"]),
     show_default=True,
     help="Which day",

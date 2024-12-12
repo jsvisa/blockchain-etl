@@ -6,8 +6,6 @@ from functools import lru_cache
 import logging
 import click
 from typing import List
-from web3 import Web3
-from blockchainetl.thread_local_proxy import ThreadLocalProxy
 from ethereumetl.providers.auto import get_provider_from_uri
 
 from blockchainetl.jobs.exporters.converters import (
@@ -31,7 +29,7 @@ class ExtractTokenTransferAdapter(EthBaseAdapter):
     def __init__(
         self,
         chain,
-        batch_web3_provider,
+        provider_uri: str,
         item_exporter,
         batch_size,
         max_workers,
@@ -41,12 +39,12 @@ class ExtractTokenTransferAdapter(EthBaseAdapter):
         self.chain = chain
         self.item_exporter = item_exporter
         self.tokens = tokens
-        self.token_service = EthTokenService(Web3(batch_web3_provider))
+        self.token_service = EthTokenService(get_provider_from_uri(provider_uri))
         self.item_id_calculator = EthItemIdCalculator()
         self.enable_enrich = enable_enrich
 
         EthBaseAdapter.__init__(
-            self, chain, batch_web3_provider, item_exporter, batch_size, max_workers
+            self, chain, provider_uri, item_exporter, batch_size, max_workers
         )
 
     def enrich(self, items):
@@ -287,7 +285,7 @@ def export_token_transfers(
 
     streamer_adapter = ExtractTokenTransferAdapter(
         chain,
-        ThreadLocalProxy(lambda: get_provider_from_uri(provider_uri, batch=True)),  # type: ignore
+        provider_uri,
         item_exporter,
         batch_size,
         max_workers,

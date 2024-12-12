@@ -20,8 +20,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-
-import json
 import logging
 from typing import Iterable, Optional, Dict, Tuple, List
 
@@ -90,7 +88,7 @@ class ExportReceiptsJob(BaseJob):
         receipts_rpc = list(generate_get_receipt_json_rpc(transaction_hashes))
         if self.batch_size == 1:
             receipts_rpc = receipts_rpc[0]
-        response = self.batch_web3_provider.make_batch_request(json.dumps(receipts_rpc))
+        response = self.batch_web3_provider.make_batch_request(receipts_rpc)
         results = rpc_response_batch_to_results(
             response, ignore_error=self.ignore_error, requests=receipts_rpc
         )

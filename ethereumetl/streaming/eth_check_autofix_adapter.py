@@ -1,9 +1,8 @@
 import logging
 from time import time
-from datetime import datetime
+from datetime import datetime, timezone
 
 from blockchainetl.utils import time_elapsed
-from ethereumetl.providers.rpc import BatchHTTPProvider
 from .eth_base_adapter import EthBaseAdapter
 
 
@@ -12,7 +11,7 @@ class EthCheckAutofixAdapter(EthBaseAdapter):
         self,
         chain,
         checkers,
-        batch_web3_provider: BatchHTTPProvider,
+        provider_uri: str,
         batch_size: int = 10,
         max_workers: int = 10,
         dryrun: bool = False,
@@ -22,7 +21,7 @@ class EthCheckAutofixAdapter(EthBaseAdapter):
         EthBaseAdapter.__init__(
             self,
             chain,
-            batch_web3_provider,
+            provider_uri,
             batch_size=batch_size,
             max_workers=max_workers,
         )
@@ -35,8 +34,8 @@ class EthCheckAutofixAdapter(EthBaseAdapter):
         st = min(b["timestamp"] for b in blocks)
         et = max(b["timestamp"] for b in blocks)
 
-        st_day = datetime.utcfromtimestamp(st).strftime("%Y-%m-%d")
-        et_day = datetime.utcfromtimestamp(et).strftime("%Y-%m-%d")
+        st_day = datetime.fromtimestamp(st, timezone.utc).strftime("%Y-%m-%d")
+        et_day = datetime.fromtimestamp(et, timezone.utc).strftime("%Y-%m-%d")
 
         succeed = {}
         result = {}

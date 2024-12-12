@@ -6,7 +6,6 @@ from collections.abc import Callable
 from typing import Set, Optional
 from sqlalchemy import create_engine, text
 
-from web3 import Web3
 
 from blockchainetl.utils import time_elapsed
 from blockchainetl.jobs.exporters.console_item_exporter import ConsoleItemExporter
@@ -14,7 +13,7 @@ from blockchainetl.jobs.exporters.in_memory_item_exporter import InMemoryItemExp
 from blockchainetl.enumeration.entity_type import EntityType, EntityTable
 from blockchainetl.enumeration.chain import Chain
 from ethereumetl.domain.receipt import EthReceipt
-from ethereumetl.providers.rpc import BatchHTTPProvider
+from ethereumetl.providers.auto import get_provider_from_uri
 from ethereumetl.jobs.export_receipts_job import ExportReceiptsJob
 from ethereumetl.jobs.export_traces_job import ExportTracesJob
 from ethereumetl.service.eth_token_service import EthTokenService
@@ -47,7 +46,7 @@ class EthReorgAdapter(EthBaseAdapter):
         self,
         target_schema,
         target_db_url,
-        batch_web3_provider: BatchHTTPProvider,
+        provider_uri: str,
         item_exporter=ConsoleItemExporter(),
         chain=Chain.ETHEREUM,
         batch_size=100,
@@ -80,11 +79,11 @@ class EthReorgAdapter(EthBaseAdapter):
         self.token_service = None
         if enable_enrich:
             self.token_service = EthTokenService(
-                Web3(batch_web3_provider), cache_path=token_cache_path
+                get_provider_from_uri(provider_uri), cache_path=token_cache_path
             )
 
         EthBaseAdapter.__init__(
-            self, chain, batch_web3_provider, item_exporter, batch_size, max_workers
+            self, chain, provider_uri, item_exporter, batch_size, max_workers
         )
 
     def fetch_old_blocks(

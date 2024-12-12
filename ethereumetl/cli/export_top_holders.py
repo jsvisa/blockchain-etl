@@ -8,11 +8,9 @@ from blockchainetl.cli.utils import (
     global_click_options,
     pick_random_provider_uri,
 )
-from blockchainetl.thread_local_proxy import ThreadLocalProxy
 from blockchainetl.streaming.streamer import Streamer
 from blockchainetl.enumeration.entity_type import EntityType, parse_entity_types
 from blockchainetl.jobs.exporters.redis_item_exporter import RedisItemExporter
-from ethereumetl.providers.auto import get_provider_from_uri
 from ethereumetl.streaming.eth_token_holder_adapter import EthTokenHolderAdapter
 from blockchainetl.service.redis_top_holder_service import (
     RED_UPSERT_TOKEN_HOLDER_SCRIPT,
@@ -177,9 +175,7 @@ def export_top_holders(
         exclude_tokens = set(exclude_tokens.lower().split(","))
 
     streamer_adapter = EthTokenHolderAdapter(
-        batch_web3_provider=ThreadLocalProxy(
-            lambda: get_provider_from_uri(provider_uri, batch=True)
-        ),
+        provider_uri=provider_uri,
         item_exporter=item_exporter,
         chain=chain,
         batch_size=batch_size,
@@ -201,9 +197,8 @@ def export_top_holders(
     streamer.stream()
 
     logging.info(
-        "Finish dump with chain={} provider={} block=[{}, {}] entity-types={} (elapsed: {}s)".format(
+        "Finish dump with chain={} block=[{}, {}] entity-types={} (elapsed: {}s)".format(
             chain,
-            provider_uri,
             start_block,
             end_block,
             entity_types,

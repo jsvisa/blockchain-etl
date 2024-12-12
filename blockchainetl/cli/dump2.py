@@ -9,16 +9,13 @@ from blockchainetl.cli.utils import (
     str2bool,
 )
 from blockchainetl.utils import time_elapsed
-from blockchainetl.thread_local_proxy import ThreadLocalProxy
 from blockchainetl.streaming.streamer import Streamer
 from blockchainetl.enumeration.entity_type import EntityType, parse_entity_types
 from blockchainetl.jobs.exporters.item_exporter_builder import create_tsdb_exporter
 from blockchainetl.jobs.exporters import NoopItemExporter
 
-from bitcoinetl.rpc.bitcoin_rpc import BitcoinRpc
 from bitcoinetl.streaming.btc_streamer_adapter import BtcStreamerAdapter
 
-from ethereumetl.providers.auto import get_provider_from_uri
 from ethereumetl.streaming.eth_streamer_adapter import EthStreamerAdapter
 from ethereumetl.streaming.utils import build_erc20_token_reader
 
@@ -251,17 +248,8 @@ def dump2(
         )
 
     if chain_type == "evm":
-        web3_provider = ThreadLocalProxy(
-            lambda: get_provider_from_uri(provider_uri, batch=True)
-        )
-        trace_provider = web3_provider
-        trace_provider_uri = kwargs.get("trace_provider_uri")
-        if trace_provider_uri is not None:
-            trace_provider = ThreadLocalProxy(
-                lambda: get_provider_from_uri(trace_provider_uri, batch=True)
-            )
         streamer_adapter = EthStreamerAdapter(
-            batch_web3_provider=web3_provider,
+            provider_uri,
             item_exporter=item_exporter,
             chain=chain,
             batch_size=batch_size,
@@ -278,11 +266,11 @@ def dump2(
             ),
             enable_enrich=enable_enrich,
             token_cache_path=cache_path,
-            trace_provider=trace_provider,
+            trace_provider_uri=kwargs.get("trace_provider_uri"),
         )
     elif chain_type == "utxo":
         streamer_adapter = BtcStreamerAdapter(
-            bitcoin_rpc=ThreadLocalProxy(lambda: BitcoinRpc(provider_uri)),
+            provider_uri,
             item_exporter=item_exporter,
             chain=chain,
             enable_enrich=enable_enrich,
