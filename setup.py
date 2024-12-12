@@ -59,7 +59,6 @@ setup(
         "millify==0.1.1",
         "diskcache==5.4.0",
         "loky>=3.1.0",
-        "jsonlines",
         "prometheus_client",
         "rpq==2.2",
         "pypeln",
