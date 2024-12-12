@@ -1,4 +1,7 @@
-import pandas as pd
+try:
+    import pandas as pd
+except:
+    pass
 
 from .simple_item_converter import SimpleItemConverter
 
