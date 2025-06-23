@@ -42,10 +42,12 @@ logger = logging.getLogger(__name__)
 
 
 def hex_to_dec(
-    hex_string: Optional[str], ignore_error=True
+    hex_string: Optional[Union[int, str]], ignore_error=True
 ) -> Optional[Union[str, int]]:
     if hex_string is None:
         return None
+    if isinstance(hex_string, int):
+        return hex_string
     try:
         return int(hex_string, 16)
     except ValueError:
