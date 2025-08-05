@@ -28,7 +28,6 @@ millify = '==0.1.1'
 diskcache = '==5.4.0'
 prometheus_client = "*"
 rpq = "==2.2"
-pypeln = "*"
 
 [dev-packages]
 pre-commit = "*"
