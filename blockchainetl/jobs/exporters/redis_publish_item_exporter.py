@@ -1,7 +1,6 @@
 import redis
 import json
 import logging
-import pypeln as pl
 from time import time
 from typing import Dict, Optional
 
@@ -48,13 +47,8 @@ class RedisPublishItemExporter:
             if item_group is None:
                 continue
 
-            converted_items = self.convert_items(item_group)
-            pl.thread.each(
-                self.export_item,
-                ((channel, item) for item in converted_items),
-                workers=self.max_workers,
-                run=True,
-            )
+            for item in self.convert_items(item_group):
+                self.export_item((channel, item))
 
         # what we promised is the receiver receive the alerts
         # at least once per last_exported_time

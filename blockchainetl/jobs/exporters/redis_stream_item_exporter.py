@@ -1,4 +1,3 @@
-import pypeln as pl
 import redis
 from typing import Dict
 
@@ -31,13 +30,8 @@ class RedisStreamItemExporter:
             if item_group is None:
                 continue
 
-            converted_items = self.convert_items(item_group)
-            pl.thread.each(
-                self.export_item,
-                ((channel, item) for item in converted_items),
-                workers=self.max_workers,
-                run=True,
-            )
+            for item in self.convert_items(item_group):
+                self.export_item((channel, item))
 
     def export_item(self, stream_with_item):
         stream, item = stream_with_item

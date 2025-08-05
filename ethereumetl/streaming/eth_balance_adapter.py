@@ -1,7 +1,6 @@
 import logging
 import redis
 import json
-import pypeln as pl
 from time import time
 from datetime import datetime, timezone
 
@@ -230,7 +229,8 @@ class EthBalanceAdapter(EthBaseAdapter):
         st9 = time()
 
         if self.async_enrich_balance is True:
-            pl.thread.each(self._enrich_balance, all_items, workers=10, run=True)
+            for item in all_items:
+                self._enrich_balance(item)
         st10 = time()
 
         logging.info(

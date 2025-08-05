@@ -1,7 +1,6 @@
 import logging
 import math
 import pandas as pd
-import pypeln as pl
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 from typing import List, Dict, Optional
 
@@ -280,9 +279,11 @@ class TrackExporter:
         df_tokens = set(df.token_address)
         ps = self._price_service
         if ps is not None:
-            stage = pl.thread.map(
-                lambda t: (t, ps.get_price(self._chain, t)), df_tokens, workers=10
-            )
+            with ThreadPoolExecutor(max_workers=self._max_workers) as pl:
+                # get token price from price service
+                # if the token is not in the price service, it will be None
+                # so we filter out the None tokens
+                stage = pl.map(lambda t: (t, ps.get_price(self._chain, t)), df_tokens)
             tokens = tokens.union(set(t[0] for t in stage if t[1] is not None))
 
         logging.info(f"filter with #{len(tokens)}/{len(df_tokens)} tokens")
