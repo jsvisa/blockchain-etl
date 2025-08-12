@@ -4,8 +4,6 @@ from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 from itertools import groupby
 from typing import Dict, List, Optional
 
-import pypeln as pl
-
 from blockchainetl.alert.receivers import BaseReceiver
 from blockchainetl.alert.rule_set import RuleSet
 from blockchainetl.enumeration.chain import Chain
@@ -130,7 +128,15 @@ class AlertExporter:
                     receiver.post(rule, result)
 
     def enrich_items(self, items: List[Dict]):
-        pl.thread.each(self.enrich_item, items, workers=10, run=True)
+        with ThreadPoolExecutor(
+            max_workers=self._max_workers, thread_name_prefix="enrich_items"
+        ) as executor:
+            futures = [executor.submit(self.enrich_item, item) for item in items]
+            for future in futures:
+                try:
+                    future.result()
+                except Exception as e:
+                    logging.error(f"Failed to enrich item: {e}")
 
     def enrich_item(self, item: Dict):
         ts = self._token_service

@@ -9,7 +9,7 @@ pymysql = "*"
 requests = "*"
 eth-hash = "*"
 pandas = "==1.4.0"
-numpy = "==2.26.2"
+numpy = "==1.26.2"
 web3 = "==7.0.0"
 pyyaml = "*"
 sqlalchemy = "<2.0"
@@ -28,7 +28,6 @@ millify = '==0.1.1'
 diskcache = '==5.4.0'
 prometheus_client = "*"
 rpq = "==2.2"
-pypeln = "*"
 
 [dev-packages]
 pre-commit = "*"
